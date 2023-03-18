@@ -15,13 +15,35 @@ use Inertia\Inertia;
 |
 */
 
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
+/*main routes*/
+Route::get('/',[App\Http\Controllers\ViewController::class, 'TopPage'])->name('toppage');
+
+Route::get('data',function () {
+    return Inertia::render('DataView');
+})->name('dataview');
+
+Route::prefix('add')->group(function(){
+    Route::get('/',function () {
+        return Inertia::render('AddData');
+    })->name('adddata');
+    Route::get('player',function () {
+        return Inertia::render('CreatePlayer');
+    })->name('create.player');
+});
+
+Route::get('chat',function () {
+    return Inertia::render('ChatView');
+})->name('chatview');
+
+Route::get('tools',function () {
+    return Inertia::render('ToolsTop');
+})->name('toolstop');
+/*main routes end*/
+
+Route::prefix('create')->group(function(){
+    Route::get('schedule',function () {
+        return Inertia::render('CreateSchedule');
+    })->name('create.schedule');
 });
 
 Route::middleware([
