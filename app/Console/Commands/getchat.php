@@ -62,15 +62,20 @@ class getchat extends Command
                     $tempTime = new Carbon($items[$k]["snippet"]["publishedAt"]);
                     $tempPublishedAt = $tempTime->addHour(9)->toDateTimeString();
 
-                    $newMessage[] = [
-                        "video_id" => $videoId,
-                        "message" => $tempMessage,
-                        "published_at" => $tempPublishedAt,
-                        "created_at" => date('Y-m-d H:i:s'),
-                        "updated_at" => date('Y-m-d H:i:s'),
-                    ];
+                    $isNew = DB::table('chats')->where('video_id',$videoId)->where('message',$tempMessage)->doesntExist();
+
+                    if($isNew){
+                        $newMessage[] = [
+                            "video_id" => $videoId,
+                            "message" => $tempMessage,
+                            "published_at" => $tempPublishedAt,
+                            "created_at" => date('Y-m-d H:i:s'),
+                            "updated_at" => date('Y-m-d H:i:s'),
+                        ];
+                    }
                 }
             }
+            print_r($newMessage);
             DB::table('chats')->insert($newMessage);
         }
 

@@ -40,6 +40,9 @@ module.exports = {
                 "spin-slow": "spin 3s linear infinite",
                 "side-bounce": "side_bounce 1s infinite",
             },
+            backgroundImage: {
+                "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
+            },
         },
     },
     plugins: [

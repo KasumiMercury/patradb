@@ -1,16 +1,13 @@
 <script setup>
 import { Link } from "@inertiajs/vue3";
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, inject, onUnmounted } from "vue";
 import AppLayout from "@/Layouts/AppLayout.vue";
 import InputLabel from "@/Components/InputLabel.vue";
 import TextInput from "@/Components/TextInput.vue";
+import ResponsiveYoutubeWindow from "@/Components/ResponsiveYoutubeWindow.vue";
+import InteractiveTimeline from "@/Components/InteractiveTimeline.vue";
 import YouTube from "vue3-youtube";
 
-defineProps({
-    today: Object,
-    month: Object,
-    other: Object,
-});
 const TopNavStyle = ref({
     "background-color": "#2d2a2d",
     "border-bottom": "5px solid",
@@ -22,12 +19,17 @@ const TopNavFontStyle = ref({
     color: "#fffafb",
 });
 
-const step = ref(0);
+const $cookies = inject("$cookies");
+
+const step = ref(1);
 const inputUrl = ref("");
-const videoId = ref("");
+const videoId = ref("0kNH45w23aA");
+const videoLength = ref(3600);
+const currentTime = ref(20);
 
 const isFloatWindow = ref(false);
 const youtubeWindowRef = ref(null);
+const youtubeComponent = ref();
 
 onMounted(() => {
     const observer = new IntersectionObserver((entries) => {
@@ -41,6 +43,16 @@ onMounted(() => {
     });
     observer.observe(youtubeWindowRef.value);
 });
+
+const existCookies = () => {
+    let cookiesIsExist = $cookies.isKey("createrPlayerForm");
+    return cookiesIsExist;
+};
+const loadCookies = () => {
+    let temp = $cookies.get("createrPlayerForm");
+    videoId.value = temp["videoId"];
+    step.value = temp["step"];
+};
 
 const nextStep = () => {
     step.value++;
@@ -96,6 +108,7 @@ const getVideoId = () => {
     if (videoId.value != "") {
         nextStep();
     }
+    $cookies.set("createrPlayerForm", { step: 1, videoId: videoId.value });
 };
 
 const inputUrlError = computed(() => {
@@ -108,6 +121,32 @@ const inputUrlError = computed(() => {
         return !reg.test(inputUrl.value);
     }
 });
+
+const convertTime = (input) => {
+    let hour = Math.floor(input / 3600);
+    let min = Math.floor((input % 3600) / 60);
+    let sec = input % 60;
+    return hour + ":" + min + ":" + sec;
+};
+
+const setVideoLength = (length) => {
+    videoLength.value = length;
+};
+
+const setCurrentTime = (time) => {
+    //console.log(time);
+    currentTime.value = time;
+};
+
+const seekDif = (seek, diff) => {
+    return seek(diff);
+};
+
+const timelinePlayAt = (time) => {
+    let youtube = youtubeComponent.value;
+    youtube.playAt(time);
+    currentTime.value = time;
+};
 </script>
 
 <style scoped>
@@ -149,17 +188,20 @@ const inputUrlError = computed(() => {
             </p>
         </template>
 
-        <div>
-            <div class="mx-auto pt-4">
-                <div v-if="step != 0" class="ml-2 w-fit mb-6 px-8">
+        <div class="w-full">
+            <div class="mx-auto pt-4 w-full">
+                <div
+                    v-if="step != 0"
+                    class="ml-0 lg:ml-2 w-fit mb-3 lg:mb-6 px-8"
+                >
                     <button
-                        class="text-lg py-2 px-6 bg-gray-800 text-white rounded-lg flex items-center"
+                        class="text-base lg:text-lg py-1 lg:py-2 px-3 lg:px-6 bg-gray-800 text-white rounded-lg flex items-center"
                         @click="prevStep()"
                     >
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 0 256 512"
-                            class="w-5 h-5 fill-white"
+                            class="w-4 h-4 lg:w-5 lg:h-5 fill-white"
                         >
                             <!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                             <path
@@ -169,32 +211,207 @@ const inputUrlError = computed(() => {
                         Back
                     </button>
                 </div>
-                <div class="w-full relative px-6" ref="youtubeWindowRef">
+                <div
+                    class="mx-auto max-w-5xl w-full aspect-video relative px-6"
+                    ref="youtubeWindowRef"
+                >
                     <template v-if="step != 0">
-                        <div
-                            class="aspect-video bg-zinc-800"
-                            :class="{
-                                'w-full': !isFloatWindow,
-                                'w-96': isFloatWindow,
-                                absolute: isFloatWindow,
-                                'top-0': isFloatWindow,
-                                'right-0': isFloatWindow,
-                                'z-50': isFloatWindow,
-                                'mt-6': isFloatWindow,
-                                'p-5': isFloatWindow,
-                                'rounded-bl-xl': isFloatWindow,
-                            }"
+                        <ResponsiveYoutubeWindow
+                            ref="youtubeComponent"
+                            :videoId="videoId"
+                            :isFloatWindow="isFloatWindow"
+                            @currentTimeUpdate="setCurrentTime"
+                            @getVideoLength="setVideoLength"
                         >
-                            <YouTube
-                                :src="videoId"
-                                ref="youtube"
-                                width="100%"
-                                class="videoWindow"
-                            />
-                        </div>
+                            <template v-slot:activator="{ play, seek }">
+                                <div class="flex justify-around">
+                                    <button
+                                        v-on:click="seekDif(seek, -600)"
+                                        class="text-sm lg:text-base text-gray-900"
+                                    >
+                                        <svg
+                                            stroke-width="1"
+                                            viewBox="0 0 24 24"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            aria-hidden="true"
+                                            class="w-8 h-8 lg:w-12 lg:h-12 stroke-white fill-none"
+                                        >
+                                            <path
+                                                transform="translate(-5)"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M18.75 19.5l-7.5-7.5 7.5-7.5m-6 15L5.25 12l7.5-7.5"
+                                            ></path>
+                                            <text
+                                                x="10"
+                                                y="14"
+                                                font-size="5.5"
+                                                stroke-width="0.1"
+                                                fill="#fff"
+                                            >
+                                                -10m
+                                            </text>
+                                        </svg>
+                                    </button>
+                                    <button
+                                        v-on:click="seekDif(seek, -10)"
+                                        class="text-sm lg:text-base text-gray-900"
+                                    >
+                                        <svg
+                                            stroke-width="1"
+                                            viewBox="0 0 24 24"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            aria-hidden="true"
+                                            class="w-8 h-8 lg:w-12 lg:h-12 stroke-white fill-none"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M15.75 19.5L8.25 12l7.5-7.5"
+                                            ></path>
+                                            <text
+                                                x="12"
+                                                y="14"
+                                                font-size="5.5"
+                                                stroke-width="0.1"
+                                                fill="#fff"
+                                            >
+                                                -10s
+                                            </text>
+                                        </svg>
+                                    </button>
+                                    <button
+                                        v-on:click="seekDif(seek, -1)"
+                                        class="text-sm lg:text-base text-gray-900"
+                                    >
+                                        <svg
+                                            stroke-width="1"
+                                            viewBox="0 0 24 24"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            aria-hidden="true"
+                                            class="w-8 h-8 lg:w-12 lg:h-12 stroke-white fill-none"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                transform="rotate(180,12,12)"
+                                                d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"
+                                            ></path>
+                                            <text
+                                                x="9"
+                                                y="14"
+                                                font-size="5.5"
+                                                stroke-width="0.1"
+                                                fill="#fff"
+                                            >
+                                                -1s
+                                            </text>
+                                        </svg>
+                                    </button>
+                                    <button
+                                        v-on:click="seekDif(seek, 1)"
+                                        class="text-sm lg:text-base rounded-xl text-gray-900"
+                                    >
+                                        <svg
+                                            stroke-width="1"
+                                            viewBox="0 0 24 24"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            aria-hidden="true"
+                                            class="w-8 h-8 lg:w-12 lg:h-12 stroke-white fill-none"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"
+                                            ></path>
+                                            <text
+                                                x="6"
+                                                y="14"
+                                                font-size="5.5"
+                                                stroke-width="0.1"
+                                                fill="#fff"
+                                            >
+                                                +1s
+                                            </text>
+                                        </svg>
+                                    </button>
+                                    <button
+                                        v-on:click="seekDif(seek, 10)"
+                                        class="text-sm lg:text-base text-gray-900"
+                                    >
+                                        <svg
+                                            stroke-width="1"
+                                            viewBox="0 0 24 24"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            aria-hidden="true"
+                                            class="w-8 h-8 lg:w-12 lg:h-12 stroke-white fill-none"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M8.25 4.5l7.5 7.5-7.5 7.5"
+                                            ></path>
+                                            <text
+                                                x="-1"
+                                                y="14"
+                                                font-size="5.5"
+                                                stroke-width="0.1"
+                                                fill="#fff"
+                                            >
+                                                +10s
+                                            </text>
+                                        </svg>
+                                    </button>
+                                    <button
+                                        v-on:click="seekDif(seek, 600)"
+                                        class="text-sm lg:text-base text-gray-900"
+                                    >
+                                        <svg
+                                            stroke-width="1"
+                                            viewBox="0 0 24 24"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            aria-hidden="true"
+                                            class="w-8 h-8 lg:w-12 lg:h-12 stroke-white fill-none"
+                                        >
+                                            <path
+                                                transform="translate(5)"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M11.25 4.5l7.5 7.5-7.5 7.5m-6-15l7.5 7.5-7.5 7.5"
+                                            ></path>
+                                            <text
+                                                x="0"
+                                                y="14"
+                                                font-size="5.5"
+                                                stroke-width="0.1"
+                                                fill="#fff"
+                                            >
+                                                +10m
+                                            </text>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </template>
+                        </ResponsiveYoutubeWindow>
                     </template>
                 </div>
                 <div v-if="step == 0" class="mt-12 px-6">
+                    <transition>
+                        <div
+                            class="mx-auto w-fit my-4 flex flex-col items-center"
+                            v-if="existCookies()"
+                        >
+                            <p class="text-sm text-[#c20063] animate-bounce">
+                                前回、入力途中のデータがあります。
+                            </p>
+                            <button
+                                class="text-base my-2 py-2 px-8 bg-[#c20063] text-white rounded-lg"
+                                @click="loadCookies()"
+                            >
+                                Load
+                            </button>
+                        </div>
+                    </transition>
                     <InputLabel for="inputUrl" value="YouTube Video URL" />
                     <div class="w-full flex flex-col items-end">
                         <TextInput
@@ -221,7 +438,7 @@ const inputUrlError = computed(() => {
                             v-if="inputUrl != '' && !inputUrlError"
                         >
                             <button
-                                class="text-3xl py-3 px-12 bg-[#c20063] text-white rounded-xl flex items-center shadow-lg shadow-[#550341]"
+                                class="text-3xl py-3 px-12 bg-[#c20063] text-white rounded-xl flex items-center shadow-sm shadow-[#550341]"
                                 @click="getVideoId()"
                             >
                                 Next
@@ -239,9 +456,12 @@ const inputUrlError = computed(() => {
                         </div>
                     </transition>
                 </div>
-                <div v-if="step == 1">
-                    {{ videoId }}
-                    <div class="min-h-screen"></div>
+                <div v-if="step == 1" class="min-h-screen w-full mb-12 mt-0">
+                    <InteractiveTimeline
+                        :videoLength="videoLength"
+                        :currentTime="currentTime"
+                        @playAt="timelinePlayAt"
+                    ></InteractiveTimeline>
                 </div>
             </div>
         </div>

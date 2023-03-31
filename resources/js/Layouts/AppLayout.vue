@@ -34,7 +34,7 @@ const checkWindowSize = () => {
 
 onMounted(() => {
     if (!isServer) {
-        window.addEventListener("resize", debounce(checkWindowSize, 50));
+        window.addEventListener("resize", checkWindowSize);
     }
 });
 onUnmounted(() => {
@@ -97,7 +97,7 @@ const logout = () => {
                     <div class="flex justify-between h-16 lg:mx-auto lg:w-fit">
                         <div class="flex">
                             <!-- App Name -->
-                            <div class="shrink-0 flex items-center">
+                            <div class="flex items-center">
                                 <Link :href="route('toppage')">
                                     <!-- <ApplicationMark class="block h-9 w-auto" /> -->
                                     <h1
@@ -225,10 +225,10 @@ const logout = () => {
             </nav>
 
             <!-- Main Unit-->
-            <div class="w-full lg:flex lg:flex-row relative grow shrink-0">
+            <div class="w-full lg:flex lg:flex-row grow shrink-0 relative">
                 <!-- PG SideBar Navigation-->
                 <div
-                    class="min-h-full hidden ml-0 w-0 lg:w-fit lg:flex lg:flex-none bg-[#ffc9e3]"
+                    class="min-h-full hidden ml-0 w-0 lg:w-fit lg:flex leg:flex-none bg-[#ffc9e3]"
                 >
                     <div
                         v-if="isSideOpen"
@@ -432,7 +432,7 @@ const logout = () => {
                     </header>
 
                     <!-- Page Content -->
-                    <main class="pb-12 lg:pb-0">
+                    <main class="pb-12 lg:pb-0 w-full max-w-full">
                         <slot />
                     </main>
                 </div>

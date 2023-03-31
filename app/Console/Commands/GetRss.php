@@ -55,11 +55,6 @@ class GetRss extends Command
                 $sendArray["member"] = false;
             }
 
-            foreach($sendArray as $value){
-                echo $value;
-                echo "\n";
-               }
-
             $existNew = false;
 
             $isNew = DB::table('videos')->where('video_id',$sendArray["video_id"])->doesntExist();
