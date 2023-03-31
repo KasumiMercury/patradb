@@ -44,13 +44,18 @@ let selectData = null;
 //
 let brushRange = [0, 3600];
 let brushRangeLength = 3600;
+let brushSubRange = [];
+let brushSubRangeLength = 0;
+let zoomSubRnage = [];
+let zoomSubRnageLength = 3600;
 let brushRangePrev = [0, 3600];
+let brushSubRangePrev = [];
 let seelected = null;
 let snapValue = 1;
 let showSub = false;
+let showedSub = false;
 let timeVal5 = [];
 let isPlayer = false;
-let zoomSubRnage = [];
 let histry = [];
 let histryIndex = -1;
 let snap = true;
@@ -392,6 +397,7 @@ const updateZoomSub = () => {
         end = brushRangeLength + 120;
     }
     zoomSubRnage = [start, end];
+    zoomSubRnageLength = end - start;
     xScaleZoomSub
         .domain([start, end])
         .range([0, width - margin.left - margin.right]);
@@ -401,9 +407,11 @@ const updateZoomSub = () => {
         .select(".axis")
         .transition(t)
         .call(
-            xAxisZoomSub.tickValues(timeVal5).tickFormat(function (input) {
-                return getTickFormat(input);
-            })
+            xAxisZoomSub
+                .tickValues(getZoomSubTick())
+                .tickFormat(function (input) {
+                    return getTickFormat(input);
+                })
         )
         .attr("transform", "translate(0," + height.zoomSub + ")")
         .attr("class", "x axis zoom sub")
@@ -436,30 +444,50 @@ const getDefaultTick = () => {
     return tickArray;
 };
 const getTickValues = () => {
-    if (brushRangeLength >= 10800) {
+    let length = brushRangeLength;
+    let range = brushRange;
+    if (showSub) {
+        length = brushSubRangeLength;
+        range = brushSubRange;
+    }
+    if (length >= 10800) {
         snapValue = 300;
         return getDefaultTick();
-    } else if (brushRangeLength <= 10) {
-        snapValue = 1;
-        return generateTickArray(1);
     } else {
-        let underSectionArray = timeSection.filter(
-            (section) => section.range <= brushRangeLength
-        );
-        let nearSection = underSectionArray[underSectionArray.length - 1];
-        snapValue = nearSection["snap"];
-        return generateTickArray(nearSection["tick"]);
+        let nearIndex = sortedIndexBy(timeSection, { range: length }, "range");
+        if (nearIndex != 0) {
+            return generateTickArray(timeSection[nearIndex - 1].tick, range);
+        }
     }
 };
-const generateTickArray = (tick) => {
+const getZoomSubTick = () => {
+    if (zoomSubRnageLength >= 10800) {
+        snapValue = 300;
+        return getDefaultTick();
+    } else {
+        let nearIndex = sortedIndexBy(
+            timeSection,
+            { range: zoomSubRnageLength },
+            "range"
+        );
+        if (nearIndex != 0) {
+            return generateTickArray(
+                timeSection[nearIndex - 1].tick,
+                zoomSubRnage
+            );
+        }
+    }
+};
+const generateTickArray = (tick, range) => {
     let tickArray = [];
     for (
-        let i = Math.floor(brushRange[0] / tick) + 1;
-        i <= Math.floor(brushRange[1] / tick);
+        let i = Math.floor(range[0] / tick) + 1;
+        i <= Math.floor(range[1] / tick);
         i++
     ) {
         tickArray.push(tick * i);
     }
+    // console.log(tickArray);
     return tickArray;
 };
 const getTickFormat = (input) => {
@@ -517,8 +545,8 @@ const brushSelection = (event) => {
 };
 const brushedSub = ({ selection }) => {
     let [x0, x1] = selection.map(xScaleZoomSub.invert);
-    brushRange = [x0, x1];
-    brushRangeLength = brushRange[1] - brushRange[0];
+    brushSubRange = [x0, x1];
+    brushSubRangeLength = brushSubRange[1] - brushSubRange[0];
     xScaleMain2.domain([x0, x1]).range([0, width - margin.left - margin.right]);
     xAxisMain.scale(xScaleMain2);
     updateAxisMain();
@@ -526,7 +554,7 @@ const brushedSub = ({ selection }) => {
 };
 const burshSubSelection = (event) => {
     let mouse = d3.pointer(event);
-    let dx = xScaleZoomSub(brushRange[1]) - xScaleZoomSub(brushRange[0]);
+    let dx = xScaleZoomSub(brushSubRange[1]) - xScaleZoomSub(brushSubRange[0]);
     let x0 = mouse[0] - dx / 2;
     let x1 = mouse[0] + dx / 2;
     let xMax = xScaleZoomSub.range()[1];
@@ -742,24 +770,54 @@ const snapBrushRange = (range) => {
 
 // brush function
 const brushNext = () => {
-    let center = (brushRange[0] + brushRange[1]) / 2 + brushRangeLength / 2;
-    let start = center - brushRangeLength / 2;
-    let end = center + brushRangeLength / 2;
-    if (center > props.videoLength - brushRangeLength / 2) {
-        end = props.videoLength;
-        start = props.videoLength - brushRangeLength;
+    if (showSub) {
+        let center =
+            (brushSubRange[0] + brushSubRange[1]) / 2 + brushSubRangeLength / 2;
+        let start = center - brushSubRangeLength / 2;
+        let end = center + brushSubRangeLength / 2;
+        if (center > zoomSubRnage[1] - brushSubRangeLength / 2) {
+            end = zoomSubRnage[1];
+            start = zoomSubRnage[1] - brushSubRangeLength;
+        }
+        brushSubG.call(brushSub.move, [
+            xScaleZoomSub(start),
+            xScaleZoomSub(end),
+        ]);
+    } else {
+        let center = (brushRange[0] + brushRange[1]) / 2 + brushRangeLength / 2;
+        let start = center - brushRangeLength / 2;
+        let end = center + brushRangeLength / 2;
+        if (center > props.videoLength - brushRangeLength / 2) {
+            end = props.videoLength;
+            start = props.videoLength - brushRangeLength;
+        }
+        brushG.call(brush.move, [xScaleZoom(start), xScaleZoom(end)]);
     }
-    brushG.call(brush.move, [xScaleZoom(start), xScaleZoom(end)]);
 };
 const brushPrev = () => {
-    let center = (brushRange[0] + brushRange[1]) / 2 - brushRangeLength / 2;
-    let start = center - brushRangeLength / 2;
-    let end = center + brushRangeLength / 2;
-    if (center < brushRangeLength / 2) {
-        start = 0;
-        end = brushRangeLength;
+    if (showSub) {
+        let center =
+            (brushSubRange[0] + brushSubRange[1]) / 2 - brushSubRangeLength / 2;
+        let start = center - brushSubRangeLength / 2;
+        let end = center + brushSubRangeLength / 2;
+        if (center < zoomSubRnage[0] + brushSubRangeLength / 2) {
+            start = zoomSubRnage[0];
+            end = zoomSubRnage[0] + brushSubRangeLength;
+        }
+        brushSubG.call(brushSub.move, [
+            xScaleZoomSub(start),
+            xScaleZoomSub(end),
+        ]);
+    } else {
+        let center = (brushRange[0] + brushRange[1]) / 2 - brushRangeLength / 2;
+        let start = center - brushRangeLength / 2;
+        let end = center + brushRangeLength / 2;
+        if (center < brushRangeLength / 2) {
+            start = 0;
+            end = brushRangeLength;
+        }
+        brushG.call(brush.move, [xScaleZoom(start), xScaleZoom(end)]);
     }
-    brushG.call(brush.move, [xScaleZoom(start), xScaleZoom(end)]);
 };
 
 // time function
@@ -843,23 +901,38 @@ const focusToggle = () => {
     let center = (brushRange[0] + brushRange[1]) / 2;
     focus = !focus;
     if (focus) {
-        brushRangePrev = brushRange;
+        showedSub = showSub;
         if (showSub) {
+            brushSubRangePrev = brushSubRange;
             brushSubG.call(brushSub.move, [
                 xScaleZoomSub(center - 10),
                 xScaleZoomSub(center + 10),
             ]);
         } else {
-            brushG.call(brush.move, [
-                xScaleZoom(center - 10),
-                xScaleZoom(center + 10),
+            brushRangePrev = brushRange;
+            let dx = xScaleZoom(1200);
+            let x0 = xScaleZoom(center) - dx / 2;
+            let x1 = xScaleZoom(center) + dx / 2;
+            let xMax = xScaleZoom.range()[1];
+            let x = x1 > xMax ? [xMax - dx, xMax] : x0 < 0 ? [0, dx] : [x0, x1];
+            brushG.call(brush.move, [x[0], x[1]]);
+            brushSubG.call(brushSub.move, [
+                xScaleZoomSub(center - 10),
+                xScaleZoomSub(center + 10),
             ]);
         }
     } else {
-        brushG.call(brush.move, [
-            xScaleZoom(brushRangePrev[0]),
-            xScaleZoom(brushRangePrev[1]),
-        ]);
+        if (showedSub) {
+            brushSubG.call(brushSub.move, [
+                xScaleZoomSub(brushSubRangePrev[0]),
+                xScaleZoomSub(brushSubRangePrev[1]),
+            ]);
+        } else {
+            brushG.call(brush.move, [
+                xScaleZoom(brushRangePrev[0]),
+                xScaleZoom(brushRangePrev[1]),
+            ]);
+        }
     }
 };
 
