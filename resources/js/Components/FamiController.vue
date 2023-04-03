@@ -11,7 +11,7 @@ const emits = defineEmits([
     "LowerRange",
     "HigherRange",
     "undoOperate",
-    "addTime"
+    "addTime",
 ]);
 const brushNext = () => {
     emits("brushNext");
@@ -28,12 +28,12 @@ const LowerRange = () => {
 const HigherRange = () => {
     emits("HigherRange");
 };
-const undoOperate = () =>{
-    emits("undoOperate")
-}
-const addTime = ()=>{
-    emits("addTime")
-}
+const undoOperate = () => {
+    emits("undoOperate");
+};
+const addTime = () => {
+    emits("addTime");
+};
 </script>
 <style scoped>
 .controller_body {
@@ -181,9 +181,9 @@ const addTime = ()=>{
                         class="controller_gold h-full w-full rounded-2xl bg-[#f6e0af]"
                     ></div>
                     <div
-                        class="absolute bottom-1/3 left-0 z-30 flex h-4/5 w-1/3 flex-row"
+                        class="absolute bottom-1/3 left-0 z-10 flex h-4/5 w-1/3 flex-row"
                     >
-                        <div class="relative z-30 mx-auto aspect-square h-full">
+                        <div class="relative z-10 mx-auto aspect-square h-full">
                             <div
                                 class="absolute top-0 left-1/2 box-content aspect-square w-1/3 -translate-x-1/2 px-2 pt-2 after:absolute after:left-0 after:top-0 after:z-[-10] after:h-full after:w-full after:rounded-t-xl after:bg-[#c20063]"
                             >
@@ -223,7 +223,7 @@ const addTime = ()=>{
                                 </button>
                             </div>
                             <div
-                                class="absolute top-1/2 right-1/2 z-30 flex aspect-square w-1/3 -translate-y-1/2 translate-x-1/2 items-center justify-center bg-gradient-to-l from-[#515151] via-[#2d2a2d] to-[#1d1d1d]"
+                                class="absolute top-1/2 right-1/2 z-10 flex aspect-square w-1/3 -translate-y-1/2 translate-x-1/2 items-center justify-center bg-gradient-to-l from-[#515151] via-[#2d2a2d] to-[#1d1d1d]"
                             >
                                 <div
                                     class="center_radial aspect-square w-2/3 rounded-full border-2 border-gray-900 shadow-md shadow-gray-900"
@@ -253,7 +253,7 @@ const addTime = ()=>{
                             >
                                 <button
                                     class="relative box-content flex aspect-square w-full items-center justify-center rounded-b-md border-r-2 border-gray-200 bg-gradient-to-l from-[#515151] via-[#2d2a2d] to-[#1d1d1d] after:absolute after:top-0 after:left-0 after:h-2 after:w-full after:-translate-y-1/2 after:bg-gradient-to-l after:from-[#515151] after:via-[#2d2a2d] after:to-[#1d1d1d]"
-                                        @click="LowerRange"
+                                    @click="LowerRange"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -309,7 +309,7 @@ const addTime = ()=>{
                     </div>
                     <!-- Add Remove roundButtons -->
                     <div
-                        class="absolute bottom-1/3 right-0 z-30 mx-5 flex h-fit w-1/3 items-center justify-around px-10"
+                        class="absolute bottom-1/3 right-0 z-10 mx-5 flex h-fit w-1/3 items-center justify-around px-10"
                     >
                         <div
                             class="aspect-square w-1/3 rounded-full bg-[#c20063] p-2"

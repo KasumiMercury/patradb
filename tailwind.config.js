@@ -43,6 +43,14 @@ module.exports = {
             backgroundImage: {
                 "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
             },
+            colors: {
+                "ptr-main": "#D8346E",
+                "ptr-dark-pink": "#c20063",
+                "ptr-pink":"#ff99cd",
+                "ptr-light-pink": "#ffc9e3",
+                "ptr-white": "#fffafb",
+                "ptr-dark-brown": "#2d2a2d",
+            },
         },
     },
     plugins: [

@@ -86,22 +86,22 @@ const logout = () => {
 
         <Banner />
 
-        <div class="min-h-screen py-0 flex flex-col">
+        <div class="flex min-h-screen flex-col py-0">
             <!-- App TopBar Navigation-->
             <nav
-                class="bg-[#ff99cd] border-gray-100 shadow z-40 pt-safe"
+                class="z-40 border-gray-100 bg-[#ff99cd] shadow pt-safe"
                 :style="TopNavStyle"
             >
                 <!-- Primary Navigation Menu -->
-                <div class="max-w-7xl mx-auto py-3 px-4 sm:px-6 lg:px-8">
-                    <div class="flex justify-between h-16 lg:mx-auto lg:w-fit">
+                <div class="mx-auto max-w-7xl py-3 px-4 sm:px-6 lg:px-8">
+                    <div class="flex h-16 justify-between lg:mx-auto lg:w-fit">
                         <div class="flex">
                             <!-- App Name -->
                             <div class="flex items-center">
                                 <Link :href="route('toppage')">
                                     <!-- <ApplicationMark class="block h-9 w-auto" /> -->
                                     <h1
-                                        class="ml-0 md:ml-2 mr-auto lg:mx-0 text-2xl md:text-4xl px-4 text-white font-Titan"
+                                        class="ml-0 mr-auto px-4 font-Titan text-2xl text-white md:ml-2 md:text-4xl lg:mx-0"
                                         :style="TopNavFontStyle"
                                     >
                                         Unofficial Patra DB
@@ -111,9 +111,9 @@ const logout = () => {
                         </div>
 
                         <!-- Hamburger -->
-                        <div class="-mr-2 md:mr-4 flex items-center lg:hidden">
+                        <div class="-mr-2 flex items-center md:mr-4 lg:hidden">
                             <button
-                                class="inline-flex items-center justify-center p-2 rounded-md text-gray-100 hover:text-[#c20063] hover:bg-[#fb7faf] focus:outline-none focus:bg-gray-100 focus:text-[#c20063] transition duration-150 ease-in-out"
+                                class="inline-flex items-center justify-center rounded-md p-2 text-gray-100 transition duration-150 ease-in-out hover:bg-[#fb7faf] hover:text-ptr-dark-pink focus:bg-gray-100 focus:text-ptr-dark-pink focus:outline-none"
                                 @click="
                                     showingNavigationDropdown =
                                         !showingNavigationDropdown
@@ -159,14 +159,14 @@ const logout = () => {
                         block: showingNavigationDropdown,
                         hidden: !showingNavigationDropdown,
                     }"
-                    class="lg:hidden z-40 bg-[#ffc9e3]"
+                    class="z-40 bg-ptr-light-pink lg:hidden"
                 >
                     <!-- Responsive Settings -->
-                    <div class="pt-4 pb-1 border-t border-gray-200">
+                    <div class="border-t border-gray-200 pt-4 pb-1">
                         <div class="flex items-center px-4">
                             <div
                                 v-if="$page.props.auth.user"
-                                class="select-none font-medium text-xl text-[#c20063] my-2 w-full text-center"
+                                class="my-2 w-full select-none text-center text-xl font-medium text-ptr-dark-pink"
                             >
                                 {{ $page.props.auth.user.name }}
                             </div>
@@ -225,32 +225,32 @@ const logout = () => {
             </nav>
 
             <!-- Main Unit-->
-            <div class="w-full lg:flex lg:flex-row grow shrink-0 relative">
+            <div class="relative w-full shrink-0 grow lg:flex lg:flex-row">
+                <div
+                    v-if="isSideOpen"
+                    @click="isSideOpen = !isSideOpen"
+                    class="absolute inset-0 z-10 min-h-full min-w-full bg-gray-800/50 xl:hidden"
+                ></div>
                 <!-- PG SideBar Navigation-->
                 <div
-                    class="min-h-full hidden ml-0 w-0 lg:w-fit lg:flex leg:flex-none bg-[#ffc9e3]"
+                    class="leg:flex-none relative z-10 ml-0 hidden min-h-full w-0 bg-ptr-light-pink shadow-md shadow-gray-900 lg:flex lg:w-fit"
                 >
                     <div
                         v-if="isSideOpen"
-                        @click="isSideOpen = !isSideOpen"
-                        class="z-10 absolute inset-0 min-w-full min-h-full bg-gray-800/50 xl:hidden"
-                    ></div>
-                    <div
-                        v-if="isSideOpen"
-                        class="hidden w-0 min-h-full pl-1 overscroll-contain z-30 lg:absolute xl:relative lg:flex lg:w-64 bg-[#ffc9e3]"
+                        class="z-30 hidden min-h-full w-0 overscroll-contain bg-ptr-light-pink pl-1 lg:absolute lg:flex lg:w-64 xl:relative"
                     >
                         <div
-                            class="customSticky w-full h-fit lg:flex lg:flex-col"
+                            class="customSticky h-fit w-full lg:flex lg:flex-col"
                         >
                             <div
                                 v-if="$page.props.auth.user"
-                                class="select-none pt-8 pb-4 my-2 w-fit mx-auto text-xl text-[#c20063]"
+                                class="my-2 mx-auto w-fit select-none pt-8 pb-4 text-xl text-ptr-dark-pink"
                             >
                                 {{ $page.props.auth.user.name }}
                             </div>
                             <div
                                 v-else
-                                class="pt-8 pb-4 my-2 w-full text-xl text-[#c20063] flex flex-col"
+                                class="my-2 flex w-full flex-col pt-8 pb-4 text-xl text-ptr-dark-pink"
                             >
                                 <ResponsiveNavLink :href="route('login')">
                                     Log in
@@ -267,7 +267,7 @@ const logout = () => {
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         viewBox="0 0 576 512"
-                                        class="w-5 h-5 mr-2"
+                                        class="mr-2 h-5 w-5"
                                     >
                                         <!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                                         <path
@@ -285,7 +285,7 @@ const logout = () => {
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         viewBox="0 0 576 512"
-                                        class="w-5 h-5 mr-2"
+                                        class="mr-2 h-5 w-5"
                                     >
                                         <!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                                         <path
@@ -303,7 +303,7 @@ const logout = () => {
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         viewBox="0 0 512 512"
-                                        class="w-5 h-5 mr-2"
+                                        class="mr-2 h-5 w-5"
                                     >
                                         <!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                                         <path
@@ -321,7 +321,7 @@ const logout = () => {
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         viewBox="0 0 640 512"
-                                        class="w-5 h-5 mr-2"
+                                        class="mr-2 h-5 w-5"
                                     >
                                         <!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                                         <path
@@ -339,7 +339,7 @@ const logout = () => {
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         viewBox="0 0 512 512"
-                                        class="w-5 h-5 mr-2"
+                                        class="mr-2 h-5 w-5"
                                     >
                                         <!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                                         <path
@@ -350,7 +350,7 @@ const logout = () => {
                                 Tools
                             </ResponsiveNavLink>
                             <div v-if="$page.props.auth.user" class="mt-6">
-                                <div class="mx-4 h-px bg-[#c20063]"></div>
+                                <div class="mx-4 h-px bg-ptr-dark-pink"></div>
                                 <!-- Authentication -->
                                 <form method="POST" @submit.prevent="logout">
                                     <ResponsiveNavLink as="button">
@@ -358,7 +358,7 @@ const logout = () => {
                                             ><svg
                                                 xmlns="http://www.w3.org/2000/svg"
                                                 viewBox="0 0 512 512"
-                                                class="w-5 h-5 mr-2"
+                                                class="mr-2 h-5 w-5"
                                             >
                                                 <!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                                                 <path
@@ -373,12 +373,12 @@ const logout = () => {
                         </div>
                     </div>
                     <div
-                        class="hidden w-0 min-h-full max-h-full relative lg:w-12 lg:flex lg:flex-col bg-[#ffc9e3] xl:hidden"
+                        class="relative hidden max-h-full min-h-full w-0 bg-ptr-light-pink lg:flex lg:w-12 lg:flex-col xl:hidden"
                     >
-                        <div class="w-full h-fit customSticky">
-                            <div class="mx-auto w-fit mt-2">
+                        <div class="customSticky h-fit w-full">
+                            <div class="mx-auto mt-2 w-fit">
                                 <button
-                                    class="inline-flex items-center justify-center p-2 rounded-md text-[#c20063] hover:text-white hover:bg-[#fb7faf] focus:outline-none focus:bg-[#fb7faf] focus:text-white transition duration-150 ease-in-out"
+                                    class="inline-flex items-center justify-center rounded-md p-2 text-ptr-dark-pink transition duration-150 ease-in-out hover:bg-[#fb7faf] hover:text-white focus:bg-[#fb7faf] focus:text-white focus:outline-none"
                                     @click="isSideOpen = !isSideOpen"
                                 >
                                     <svg
@@ -416,10 +416,10 @@ const logout = () => {
 
                 <!-- SP BottomBar Navigation -->
                 <div
-                    class="w-screen pb-safe h-12 block fixed inset-x-0 bottom-0 lg:hidden lg:absolute bg-gray-300 z-30"
+                    class="fixed inset-x-0 bottom-0 z-30 block h-12 w-screen bg-gray-300 pb-safe lg:absolute lg:hidden"
                 ></div>
 
-                <div class="lg:grow z-0">
+                <div class="z-0 lg:grow">
                     <!-- Page Heading -->
                     <header
                         v-if="$slots.header"
@@ -432,7 +432,7 @@ const logout = () => {
                     </header>
 
                     <!-- Page Content -->
-                    <main class="pb-12 lg:pb-0 w-full max-w-full">
+                    <main class="w-full max-w-full pb-12 lg:pb-0">
                         <slot />
                     </main>
                 </div>

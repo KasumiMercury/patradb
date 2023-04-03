@@ -38,7 +38,6 @@ const timeSection = [
     { range: 7200, tick: 600, snap: 180 },
 ];
 
-
 // global
 const timeSet = ref([]);
 let timeSetArray = [];
