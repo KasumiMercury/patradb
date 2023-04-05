@@ -5,6 +5,7 @@ import * as d3 from "d3";
 import pkg from "lodash";
 import { onMounted, onUnmounted, ref, watch } from "vue";
 import FamiController from "./FamiController.vue";
+import GameBoyController from "./GameBoyController.vue";
 const { debounce, chunk, sortedIndexBy } = pkg;
 
 const isServer = typeof window === "undefined";
@@ -14,9 +15,11 @@ const props = defineProps({
 });
 const emits = defineEmits(["playAt"]);
 const timelineWrapper = ref();
+const controllerWrapper = ref();
 
 // setting
 let width = 1000;
+const ControllerWidth = ref(1000);
 const height = { zoom: 60, zoomSub: 60, select: 180, player: 60 };
 const margin = {
     top: 40,
@@ -38,12 +41,28 @@ const timeSection = [
     { range: 7200, tick: 600, snap: 180 },
 ];
 
+const command = [
+    "ArrowUp",
+    "ArrowUp",
+    "ArrowDown",
+    "ArrowDown",
+    "ArrowLeft",
+    "ArrowRight",
+    "ArrowLeft",
+    "ArrowRight",
+    "KeyB",
+    "KeyA",
+];
+
 // global
+let keyInputArray = [];
 const timeSet = ref([]);
-let timeSetArray = [];
+const menuSet = ref([]);
+const timeSetArray = ref([]);
 let selectData = null;
 const snap = ref(true);
 const focus = ref(false);
+const errorExist = ref(false);
 //
 let brushRange = [0, 3600];
 let brushRangeLength = 3600;
@@ -105,6 +124,7 @@ onMounted(() => {
     }
     // width setting
     width = timelineWrapper.value.clientWidth;
+    ControllerWidth.value = controllerWrapper.value.clientWidth;
     // init group
     graphArea = field
         .append("svg")
@@ -209,7 +229,7 @@ onMounted(() => {
         .each(function (d) {
             d.type = "selection";
         })
-        .on("mousedown touchstart", brushSelection);
+        .on("mousedown ", brushSelection);
     brushG
         .select(".selection")
         .attr("fill", "#2d2a2d")
@@ -228,7 +248,7 @@ onMounted(() => {
         .each(function (d) {
             d.type = "selection";
         })
-        .on("mousedown touchstart", burshSubSelection);
+        .on("mousedown ", burshSubSelection);
     // mouse Axis
     mouseAxis = mainGroup.append("g").attr("class", "mouse group");
     mouseAxis
@@ -250,6 +270,17 @@ onMounted(() => {
     timeMainGroup = mainGroup.append("g").attr("class", "time main group");
     histry[0] = [];
 });
+// konami command
+const onKeyDown = (e) => {
+    keyInputArray.push(e);
+    console.log(keyInputArray);
+    if (keyInputArray.length >= 10) {
+        keyInputArray = keyInputArray.slice(-10);
+        if (String(keyInputArray) === String(command)) {
+            console.log("command fire");
+        }
+    }
+};
 // axis display
 const setAxis = () => {
     xScaleZoom
@@ -601,10 +632,11 @@ const addTime = (time) => {
         generateColScale();
         updateTimeZoomDisplay();
         updateTimeMainDisplay();
+        menuSet.value.push(false);
     }
 };
 const updateTimeZoomDisplay = () => {
-    let tempZoom = timeZoomGroup.selectAll("rect").data(timeSetArray);
+    let tempZoom = timeZoomGroup.selectAll("rect").data(timeSetArray.value);
     tempZoom.exit().remove();
     tempZoom
         .enter()
@@ -628,7 +660,7 @@ const updateTimeZoomDisplay = () => {
         })
         .attr("height", height.zoom)
         .attr("fill", function (d, i) {
-            return cols(i / timeSetArray.length);
+            return cols(i / d.length);
         })
         .attr("fill-opacity", "0.5")
         .style("user-select", "none");
@@ -647,7 +679,7 @@ const updateTimeMainDisplay = () => {
             return xScaleMain2(d) - (i % 2) * 4;
         })
         .attr("fill", function (d, i) {
-            return cols(Math.floor(i / 2) / timeSetArray.length);
+            return cols(Math.floor(i / 2) / timeSetArray.value.length);
         });
     let handle = timeMainGroup.selectAll("polygon").data(timeSet.value);
     handle.exit().remove();
@@ -668,7 +700,7 @@ const updateTimeMainDisplay = () => {
             );
         })
         .attr("fill", function (d, i) {
-            return cols(Math.floor(i / 2) / timeSetArray.length);
+            return cols(Math.floor(i / 2) / timeSetArray.value.length);
         })
         .call(
             d3
@@ -685,7 +717,7 @@ const updateTimeMainDisplay = () => {
                 })
         );
     // main Area back
-    let timeArea = selectTimeGroup.selectAll("rect").data(timeSetArray);
+    let timeArea = selectTimeGroup.selectAll("rect").data(timeSetArray.value);
     timeArea.exit().remove();
     timeArea
         .enter()
@@ -705,7 +737,7 @@ const updateTimeMainDisplay = () => {
             }
         })
         .attr("fill", function (d, i) {
-            return cols(i / timeSetArray.length);
+            return cols(i / timeSetArray.value.length);
         });
 };
 const generateColScale = () => {
@@ -719,7 +751,14 @@ const updateTimeArray = () => {
     timeSet.value.sort(function (a, b) {
         return a - b;
     });
-    timeSetArray = chunk(timeSet.value, 2);
+    timeSetArray.value = chunk(timeSet.value, 2);
+    // console.log(timeSetArray.value)
+    errorExist.value = false;
+    for (let i = 0; i < timeSetArray.value.length; i++) {
+        if (timeSetArray.value[i].length == 1) {
+            errorExist.value = true;
+        };
+    }
 };
 
 // time function
@@ -783,6 +822,7 @@ const timeDragged = (event) => {
 
 // fami controller methods
 const brushNext = () => {
+    onKeyDown("ArrowRight");
     if (showSub) {
         let center =
             (brushSubRange[0] + brushSubRange[1]) / 2 + brushSubRangeLength / 2;
@@ -808,6 +848,7 @@ const brushNext = () => {
     }
 };
 const brushPrev = () => {
+    onKeyDown("ArrowLeft");
     if (showSub) {
         let center =
             (brushSubRange[0] + brushSubRange[1]) / 2 - brushSubRangeLength / 2;
@@ -832,7 +873,12 @@ const brushPrev = () => {
         brushG.call(brush.move, [xScaleZoom(start), xScaleZoom(end)]);
     }
 };
+const controllAdd = () => {
+    onKeyDown("KeyA");
+    addTime(props.currentTime);
+};
 const undoOperate = () => {
+    onKeyDown("KeyB");
     if (histryIndex > -1) {
         timeSet.value = histry[histryIndex];
         histryIndex--;
@@ -888,6 +934,7 @@ const focusToggle = () => {
 };
 // find near range from timeSection array
 const findNearLowRange = () => {
+    onKeyDown("ArrowDown");
     let nearIndex = sortedIndexBy(
         timeSection,
         { range: brushRangeLength },
@@ -904,6 +951,7 @@ const findNearLowRange = () => {
     }
 };
 const findNearHighRange = () => {
+    onKeyDown("ArrowUp");
     let nearIndex = sortedIndexBy(
         timeSection,
         { range: brushRangeLength },
@@ -962,6 +1010,7 @@ watch(
 );
 
 const changeTime = () => {
+    console.log("changed");
     updateTimeArray();
     histry.push([...timeSet.value]);
     histryIndex++;
@@ -971,6 +1020,7 @@ const changeTime = () => {
 };
 const changeWidth = () => {
     width = timelineWrapper.value.clientWidth;
+    ControllerWidth.value = controllerWrapper.value.clientWidth;
 
     field.attr("width", width);
     graphArea.attr("width", width);
@@ -1015,6 +1065,21 @@ const convertTime = (input) => {
     let sec = ("0" + (input % 60)).slice(-2);
     return hour + ":" + min + ":" + sec;
 };
+const showMenu = (index) => {
+    let newArray = menuSet.value.map((element, i) => {
+        if (i == index) {
+            return !element;
+        } else {
+            return false;
+        }
+    });
+    menuSet.value = newArray;
+};
+const removeTime = (index) => {
+    timeSet.value.splice(index, 1);
+    menuSet.value.splice(index, 1);
+    changeTime();
+};
 onUnmounted(() => {
     if (!isServer) {
         window.removeEventListener("resize", changeWidth);
@@ -1038,7 +1103,7 @@ svg {
 </style>
 <template>
     <div class="w-full">
-        <div class="relative mb-36 h-96 w-full">
+        <div class="relative mb-28 h-96 w-full">
             <div
                 class="absolute top-0 left-0 h-fit w-full min-w-full max-w-full overflow-hidden"
                 id="timeline-wrapper"
@@ -1046,23 +1111,38 @@ svg {
             ></div>
         </div>
         <!-- controller -->
-        <FamiController
-            :focus="focus"
-            :snap="snap"
-            @brushNext="brushNext"
-            @brushPrev="brushPrev"
-            @focusToggle="focusToggle"
-            @LowerRange="findNearLowRange"
-            @HigherRange="findNearHighRange"
-            @undoOperate="undoOperate"
-            @addTime="addTime(props.currentTime)"
-        ></FamiController>
+        <div class="w-full" ref="controllerWrapper">
+            <FamiController
+                v-if="ControllerWidth > 980"
+                :focus="focus"
+                :snap="snap"
+                @brushNext="brushNext"
+                @brushPrev="brushPrev"
+                @focusToggle="focusToggle"
+                @LowerRange="findNearLowRange"
+                @HigherRange="findNearHighRange"
+                @undoOperate="undoOperate"
+                @addTime="controllAdd"
+            ></FamiController>
+            <GameBoyController
+                v-else
+                :focus="focus"
+                :snap="snap"
+                @brushNext="brushNext"
+                @brushPrev="brushPrev"
+                @focusToggle="focusToggle"
+                @LowerRange="findNearLowRange"
+                @HigherRange="findNearHighRange"
+                @undoOperate="undoOperate"
+                @addTime="controllAdd"
+            ></GameBoyController>
+        </div>
         <!-- time dsiplay components -->
-        <div class="mb-96 grid w-full gap-4 px-4 lg:grid-cols-2">
+        <div class="grid w-full px-4 pb-96 md:grid-cols-2 md:gap-4">
             <div
                 v-for="(times, index) in timeSetArray"
                 :key="index"
-                class="my-2 w-full rounded-xl p-6"
+                class="mt-2 mb-auto h-fit w-full rounded-xl p-3"
                 :style="
                     'background-color:' +
                     cols(index / timeSetArray.length) +
@@ -1072,22 +1152,32 @@ svg {
                 <TimeInput
                     type="time"
                     step="1"
-                    class="my-2 w-full"
+                    class="mt-2 mb-1 w-full"
                     v-model="timeSet[index * 2]"
+                    :isOpenMenu="menuSet[index * 2]"
                     required
+                    @playAt="clickPlay(timeSet[index * 2])"
+                    @remove="removeTime(index * 2)"
                     @change="changeTime"
+                    @adjust="changeTime"
+                    @showMenu="showMenu(index * 2)"
                 ></TimeInput>
                 <TimeInput
                     v-if="times.length !== 1"
                     type="time"
                     step="1"
-                    class="my-2 w-full"
+                    class="mt-1 mb-2 w-full"
                     v-model="timeSet[index * 2 + 1]"
+                    :isOpenMenu="menuSet[index * 2 + 1]"
                     required
+                    @playAt="clickPlay(timeSet[index * 2 + 1])"
+                    @remove="removeTime(index * 2 + 1)"
                     @change="changeTime"
+                    @adjust="changeTime"
+                    @showMenu="showMenu(index * 2 + 1)"
                 ></TimeInput>
             </div>
         </div>
-        {{ timeSet }}
     </div>
+    {{ errorExist }}
 </template>

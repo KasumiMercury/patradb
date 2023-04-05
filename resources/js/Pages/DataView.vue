@@ -19,6 +19,13 @@ const TopNavFontStyle = ref({
     color: "#fffafb",
 });
 </script>
+<script>
+import PlayerLayout from "../Layouts/PlayerLayout.vue";
+
+export default {
+    layout: (h, page) => h(PlayerLayout, { testValue: "test" }, () => page)
+};
+</script>
 <template>
     <AppLayout
         title="AddData"

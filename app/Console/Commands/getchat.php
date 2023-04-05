@@ -50,33 +50,34 @@ class getchat extends Command
             $videoId = $tempVideo["video_id"];
             
             $response = $youtube->liveChatMessages->listLiveChatMessages($tempVideo["chat_id"],'snippet,authorDetails',$queryParams);
-            $items = $response["items"];
-            $itemNum = count($items);
+            // $items = $response["items"];
+            // $itemNum = count($items);
 
-            $newMessage = [];
-            for($k = 0; $k < $itemNum; $k++){
-                $tempChannelId = $items[$k]["authorDetails"]["channelId"];
+            // $newMessage = [];
+            // for($k = 0; $k < $itemNum; $k++){
+            //     print_r($items[$k]);
+            //     $tempChannelId = $items[$k]["authorDetails"]["channelId"];
 
-                if($tempChannelId == "UCeLzT-7b2PBcunJplmWtoDg"){
-                    $tempMessage = $items[$k]["snippet"]["displayMessage"];
-                    $tempTime = new Carbon($items[$k]["snippet"]["publishedAt"]);
-                    $tempPublishedAt = $tempTime->addHour(9)->toDateTimeString();
+            //     if($tempChannelId == "UCeLzT-7b2PBcunJplmWtoDg"){
+            //         $tempMessage = $items[$k]["snippet"]["displayMessage"];
+            //         $tempTime = new Carbon($items[$k]["snippet"]["publishedAt"]);
+            //         $tempPublishedAt = $tempTime->addHour(9)->toDateTimeString();
 
-                    $isNew = DB::table('chats')->where('video_id',$videoId)->where('message',$tempMessage)->doesntExist();
+            //         $isNew = DB::table('chats')->where('video_id',$videoId)->where('message',$tempMessage)->doesntExist();
 
-                    if($isNew){
-                        $newMessage[] = [
-                            "video_id" => $videoId,
-                            "message" => $tempMessage,
-                            "published_at" => $tempPublishedAt,
-                            "created_at" => date('Y-m-d H:i:s'),
-                            "updated_at" => date('Y-m-d H:i:s'),
-                        ];
-                    }
-                }
-            }
-            print_r($newMessage);
-            DB::table('chats')->insert($newMessage);
+            //         if($isNew){
+            //             $newMessage[] = [
+            //                 "video_id" => $videoId,
+            //                 "message" => $tempMessage,
+            //                 "published_at" => $tempPublishedAt,
+            //                 "created_at" => date('Y-m-d H:i:s'),
+            //                 "updated_at" => date('Y-m-d H:i:s'),
+            //             ];
+            //         }
+            //     }
+            // }
+            // print_r($newMessage);
+            // DB::table('chats')->insert($newMessage);
         }
 
         return Command::SUCCESS;

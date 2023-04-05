@@ -15,6 +15,7 @@ module.exports = {
             fontFamily: {
                 sans: ["Figtree", ...defaultTheme.fontFamily.sans],
                 Titan: ["Titan One"],
+                Abril: ["Abril Fatface"],
             },
             borderWidth: {
                 8: "8px",
@@ -50,6 +51,7 @@ module.exports = {
                 "ptr-light-pink": "#ffc9e3",
                 "ptr-white": "#fffafb",
                 "ptr-dark-brown": "#2d2a2d",
+                "custom-shadow":"#534d53"
             },
         },
     },

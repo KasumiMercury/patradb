@@ -38,7 +38,6 @@ class GetSchedule extends Command
         
         $data = DB::table('videos')->where('status','rss')->get();
         $dataNum = count($data);
-
         $videoIdArray = [];
         for($i = 0;$i < $dataNum; $i++){
             $tempVideos = json_decode(json_encode($data[$i]),true);
@@ -46,7 +45,7 @@ class GetSchedule extends Command
         }
         $query = join(',',$videoIdArray);
         $items = $youtube->videos->listvideos("liveStreamingDetails,status",array('id'=>$query));
-        
+
         $itemNum = count($items);
         for($k = 0; $k < $itemNum; $k++){
             $tempTime = date('Y-m-d H:i:s', strtotime($items[$k]["liveStreamingDetails"]["scheduledStartTime"]));

@@ -3,10 +3,8 @@ import { ref, onMounted, onUnmounted } from "vue";
 import { Head, Link, router } from "@inertiajs/vue3";
 import Banner from "@/Components/Banner.vue";
 import ResponsiveNavLink from "@/Components/ResponsiveNavLink.vue";
-import pkg from "lodash";
-const { debounce } = pkg;
 
-defineProps({
+const props = defineProps({
     title: String,
     TopNavStyle: Object,
     TopNavFontStyle: Object,
@@ -18,15 +16,15 @@ const innerWidth = ref(2000);
 const isServer = typeof window === "undefined";
 
 if (!isServer) {
-    innerWidth.value = window.innerWidth;
-}
+        innerWidth.value = window.innerWidth;
+    }
 
 const checkWindowSize = () => {
     if (window.innerWidth >= 1280) {
         if (isSideOpen.value === false && innerWidth.value < 1280)
             isSideOpen.value = true;
     } else {
-        if (isSideOpen.value === true) isSideOpen.value = false;
+        if (isSideOpen.value === true) minimumWindow();
     }
     innerWidth.value = window.innerWidth;
 };
@@ -35,6 +33,7 @@ const checkWindowSize = () => {
 onMounted(() => {
     if (!isServer) {
         window.addEventListener("resize", checkWindowSize);
+        innerWidth.value = window.innerWidth;
     }
 });
 onUnmounted(() => {
@@ -46,6 +45,12 @@ onUnmounted(() => {
 const showingNavigationDropdown = ref(false);
 
 const isSideOpen = ref(innerWidth.value >= 1280 ? true : false);
+const isMaximum = ref(false);
+
+const minimumWindow = () => {
+    isSideOpen.value = false;
+    isMaximum.value = false;
+};
 
 const logout = () => {
     router.post(route("logout"));
@@ -82,15 +87,15 @@ const logout = () => {
 </style>
 <template>
     <div class="bg-[#ffedf3]">
-        <Head :title="title" />
+        <Head :title="props.title" />
 
         <Banner />
 
         <div class="flex min-h-screen flex-col py-0">
             <!-- App TopBar Navigation-->
             <nav
-                class="z-40 border-gray-100 bg-[#ff99cd] shadow pt-safe"
-                :style="TopNavStyle"
+                class="relative z-40 border-gray-100 bg-[#ff99cd] pt-safe"
+                :style="props.TopNavStyle"
             >
                 <!-- Primary Navigation Menu -->
                 <div class="mx-auto max-w-7xl py-3 px-4 sm:px-6 lg:px-8">
@@ -101,8 +106,8 @@ const logout = () => {
                                 <Link :href="route('toppage')">
                                     <!-- <ApplicationMark class="block h-9 w-auto" /> -->
                                     <h1
-                                        class="ml-0 mr-auto px-4 font-Titan text-2xl text-white md:ml-2 md:text-4xl lg:mx-0"
-                                        :style="TopNavFontStyle"
+                                        class="ml-0 mr-auto px-4 font-Abril text-2xl text-white md:ml-2 md:text-4xl lg:mx-0"
+                                        :style="props.TopNavFontStyle"
                                     >
                                         Unofficial Patra DB
                                     </h1>
@@ -229,151 +234,279 @@ const logout = () => {
                 <div
                     v-if="isSideOpen"
                     @click="isSideOpen = !isSideOpen"
-                    class="absolute inset-0 z-10 min-h-full min-w-full bg-gray-800/50 xl:hidden"
+                    class="absolute inset-0 z-10 min-h-full min-w-full bg-[#0c0c0e]/50 xl:hidden"
                 ></div>
                 <!-- PG SideBar Navigation-->
                 <div
-                    class="leg:flex-none relative z-10 ml-0 hidden min-h-full w-0 bg-ptr-light-pink shadow-md shadow-gray-900 lg:flex lg:w-fit"
+                    class="relative z-10 ml-0 hidden min-h-full w-0 lg:flex lg:w-fit"
                 >
                     <div
                         v-if="isSideOpen"
-                        class="z-30 hidden min-h-full w-0 overscroll-contain bg-ptr-light-pink pl-1 lg:absolute lg:flex lg:w-64 xl:relative"
+                        class="z-30 hidden min-h-full w-0 overscroll-contain pl-1 lg:absolute lg:flex xl:relative"
+                        :class="{
+                            'mx-0 mr-2 border-r border-ptr-dark-brown bg-ptr-light-pink shadow shadow-custom-shadow/50 lg:w-72':
+                                isMaximum,
+                            'mx-5 lg:w-64': !isMaximum,
+                        }"
                     >
                         <div
-                            class="customSticky h-fit w-full lg:flex lg:flex-col"
+                            class="customSticky h-fit w-full"
+                            :class="{
+                                'pt-0': isMaximum,
+                                'mt-12 pt-12': !isMaximum,
+                            }"
                         >
                             <div
-                                v-if="$page.props.auth.user"
-                                class="my-2 mx-auto w-fit select-none pt-8 pb-4 text-xl text-ptr-dark-pink"
+                                class="w-full rounded-md lg:flex lg:flex-col"
+                                :class="{
+                                    'py-0': isMaximum,
+                                    'border-2 border-ptr-dark-brown bg-ptr-light-pink pb-12 shadow-md shadow-custom-shadow/50':
+                                        !isMaximum,
+                                }"
                             >
-                                {{ $page.props.auth.user.name }}
-                            </div>
-                            <div
-                                v-else
-                                class="my-2 flex w-full flex-col pt-8 pb-4 text-xl text-ptr-dark-pink"
-                            >
-                                <ResponsiveNavLink :href="route('login')">
-                                    Log in
-                                </ResponsiveNavLink>
-                                <ResponsiveNavLink :href="route('register')">
-                                    Register
-                                </ResponsiveNavLink>
-                            </div>
-                            <ResponsiveNavLink
-                                :href="route('toppage')"
-                                :active="route().current('toppage')"
-                            >
-                                <template #icon>
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 576 512"
-                                        class="mr-2 h-5 w-5"
+                                <div
+                                    class="flex w-full flex-row items-end border-b-2 border-ptr-dark-brown px-3 pb-2"
+                                >
+                                    <p
+                                        class="ml-2 font-Abril text-ptr-dark-brown"
                                     >
-                                        <!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                                        <path
-                                            d="M575.8 255.5c0 18-15 32.1-32 32.1h-32l.7 160.2c0 2.7-.2 5.4-.5 8.1V472c0 22.1-17.9 40-40 40H456c-1.1 0-2.2 0-3.3-.1c-1.4 .1-2.8 .1-4.2 .1H416 392c-22.1 0-40-17.9-40-40V448 384c0-17.7-14.3-32-32-32H256c-17.7 0-32 14.3-32 32v64 24c0 22.1-17.9 40-40 40H160 128.1c-1.5 0-3-.1-4.5-.2c-1.2 .1-2.4 .2-3.6 .2H104c-22.1 0-40-17.9-40-40V360c0-.9 0-1.9 .1-2.8V287.6H32c-18 0-32-14-32-32.1c0-9 3-17 10-24L266.4 8c7-7 15-8 22-8s15 2 21 7L564.8 231.5c8 7 12 15 11 24z"
-                                        />
-                                    </svg>
-                                </template>
-                                TopPage
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink
-                                :href="route('dataview')"
-                                :active="route().current('dataview')"
-                            >
-                                <template #icon>
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 576 512"
-                                        class="mr-2 h-5 w-5"
+                                        Menu
+                                    </p>
+                                    <div class="mr-0 ml-auto w-fit">
+                                        <button
+                                            class="mt-2 box-border inline-flex w-fit items-center justify-center rounded-md border border-ptr-dark-brown bg-[#82c8c6] p-1 text-ptr-dark-brown transition duration-150 ease-in-out hover:bg-[#fb7faf] hover:text-white focus:bg-[#fb7faf] focus:text-white focus:outline-none"
+                                            @click="minimumWindow"
+                                        >
+                                            <svg
+                                                class="h-4 w-4"
+                                                stroke="currentColor"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M4 18h16"
+                                                />
+                                            </svg>
+                                        </button>
+                                        <button
+                                            v-if="!isMaximum"
+                                            class="mx-1 mt-2 box-border inline-flex w-fit items-center justify-center rounded-md border border-ptr-dark-brown bg-[#82c8c6] p-1 text-ptr-dark-brown transition duration-150 ease-in-out hover:bg-[#fb7faf] hover:text-white focus:bg-[#fb7faf] focus:text-white focus:outline-none"
+                                            @click="isMaximum = true"
+                                        >
+                                            <svg
+                                                class="h-4 w-4"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                viewBox="0 0 512 512"
+                                            >
+                                                <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                                                <path
+                                                    d="M.3 89.5C.1 91.6 0 93.8 0 96V224 416c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64V224 96c0-35.3-28.7-64-64-64H64c-2.2 0-4.4 .1-6.5 .3c-9.2 .9-17.8 3.8-25.5 8.2C21.8 46.5 13.4 55.1 7.7 65.5c-3.9 7.3-6.5 15.4-7.4 24zM48 224H464l0 192c0 8.8-7.2 16-16 16L64 432c-8.8 0-16-7.2-16-16l0-192z"
+                                                />
+                                            </svg>
+                                        </button>
+                                        <button
+                                            v-else
+                                            class="mx-1 mt-2 box-border inline-flex w-fit items-center justify-center rounded-md border border-ptr-dark-brown bg-[#82c8c6] p-1 text-ptr-dark-brown transition duration-150 ease-in-out hover:bg-[#fb7faf] hover:text-white focus:bg-[#fb7faf] focus:text-white focus:outline-none"
+                                            @click="isMaximum = false"
+                                        >
+                                            <svg
+                                                class="h-4 w-4"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                viewBox="0 0 512 512"
+                                            >
+                                                <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                                                <path
+                                                    d="M432 48H208c-17.7 0-32 14.3-32 32V96H128V80c0-44.2 35.8-80 80-80H432c44.2 0 80 35.8 80 80V304c0 44.2-35.8 80-80 80H416V336h16c17.7 0 32-14.3 32-32V80c0-17.7-14.3-32-32-32zM48 448c0 8.8 7.2 16 16 16H320c8.8 0 16-7.2 16-16V256H48V448zM64 128H320c35.3 0 64 28.7 64 64V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V192c0-35.3 28.7-64 64-64z"
+                                                />
+                                            </svg>
+                                        </button>
+                                        <button
+                                            class="mt-2 box-border inline-flex w-fit items-center justify-center rounded-md border border-ptr-dark-brown bg-[#82c8c6] p-1 text-ptr-dark-brown transition duration-150 ease-in-out hover:bg-[#fb7faf] hover:text-white focus:bg-[#fb7faf] focus:text-white focus:outline-none"
+                                            @click="minimumWindow"
+                                        >
+                                            <svg
+                                                class="h-4 w-4"
+                                                stroke="currentColor"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    :class="{
+                                                        hidden: isSideOpen,
+                                                        'inline-flex':
+                                                            !isSideOpen,
+                                                    }"
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M4 6h16M4 12h16M4 18h16"
+                                                />
+                                                <path
+                                                    :class="{
+                                                        hidden: !isSideOpen,
+                                                        'inline-flex':
+                                                            isSideOpen,
+                                                    }"
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M6 18L18 6M6 6l12 12"
+                                                />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="px-3">
+                                    <div
+                                        v-if="$page.props.auth.user"
+                                        class="mx-auto mt-2 mb-4 w-fit select-none text-xl text-ptr-dark-pink"
                                     >
-                                        <!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                                        <path
-                                            d="M88.7 223.8L0 375.8V96C0 60.7 28.7 32 64 32H181.5c17 0 33.3 6.7 45.3 18.7l26.5 26.5c12 12 28.3 18.7 45.3 18.7H416c35.3 0 64 28.7 64 64v32H144c-22.8 0-43.8 12.1-55.3 31.8zm27.6 16.1C122.1 230 132.6 224 144 224H544c11.5 0 22 6.1 27.7 16.1s5.7 22.2-.1 32.1l-112 192C453.9 474 443.4 480 432 480H32c-11.5 0-22-6.1-27.7-16.1s-5.7-22.2 .1-32.1l112-192z"
-                                        />
-                                    </svg>
-                                </template>
-                                Data
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink
-                                :href="route('adddata')"
-                                :active="route().current('adddata')"
-                            >
-                                <template #icon>
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 512 512"
-                                        class="mr-2 h-5 w-5"
+                                        {{ $page.props.auth.user.name }}
+                                    </div>
+                                    <div
+                                        v-else
+                                        class="my-4 flex w-full flex-col text-xl text-ptr-dark-pink"
                                     >
-                                        <!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                                        <path
-                                            d="M156.6 384.9L125.7 354c-8.5-8.5-11.5-20.8-7.7-32.2c3-8.9 7-20.5 11.8-33.8L24 288c-8.6 0-16.6-4.6-20.9-12.1s-4.2-16.7 .2-24.1l52.5-88.5c13-21.9 36.5-35.3 61.9-35.3l82.3 0c2.4-4 4.8-7.7 7.2-11.3C289.1-4.1 411.1-8.1 483.9 5.3c11.6 2.1 20.6 11.2 22.8 22.8c13.4 72.9 9.3 194.8-111.4 276.7c-3.5 2.4-7.3 4.8-11.3 7.2v82.3c0 25.4-13.4 49-35.3 61.9l-88.5 52.5c-7.4 4.4-16.6 4.5-24.1 .2s-12.1-12.2-12.1-20.9V380.8c-14.1 4.9-26.4 8.9-35.7 11.9c-11.2 3.6-23.4 .5-31.8-7.8zM384 168a40 40 0 1 0 0-80 40 40 0 1 0 0 80z"
-                                        />
-                                    </svg>
-                                </template>
-                                Add Data
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink
-                                :href="route('chatview')"
-                                :active="route().current('chatview')"
-                            >
-                                <template #icon>
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 640 512"
-                                        class="mr-2 h-5 w-5"
+                                        <ResponsiveNavLink
+                                            :href="route('login')"
+                                        >
+                                            Log in
+                                        </ResponsiveNavLink>
+                                        <ResponsiveNavLink
+                                            :href="route('register')"
+                                        >
+                                            Register
+                                        </ResponsiveNavLink>
+                                    </div>
+                                    <ResponsiveNavLink
+                                        :href="route('toppage')"
+                                        :active="route().current('toppage')"
                                     >
-                                        <!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                                        <path
-                                            d="M208 352c114.9 0 208-78.8 208-176S322.9 0 208 0S0 78.8 0 176c0 38.6 14.7 74.3 39.6 103.4c-3.5 9.4-8.7 17.7-14.2 24.7c-4.8 6.2-9.7 11-13.3 14.3c-1.8 1.6-3.3 2.9-4.3 3.7c-.5 .4-.9 .7-1.1 .8l-.2 .2 0 0 0 0C1 327.2-1.4 334.4 .8 340.9S9.1 352 16 352c21.8 0 43.8-5.6 62.1-12.5c9.2-3.5 17.8-7.4 25.3-11.4C134.1 343.3 169.8 352 208 352zM448 176c0 112.3-99.1 196.9-216.5 207C255.8 457.4 336.4 512 432 512c38.2 0 73.9-8.7 104.7-23.9c7.5 4 16 7.9 25.2 11.4c18.3 6.9 40.3 12.5 62.1 12.5c6.9 0 13.1-4.5 15.2-11.1c2.1-6.6-.2-13.8-5.8-17.9l0 0 0 0-.2-.2c-.2-.2-.6-.4-1.1-.8c-1-.8-2.5-2-4.3-3.7c-3.6-3.3-8.5-8.1-13.3-14.3c-5.5-7-10.7-15.4-14.2-24.7c24.9-29 39.6-64.7 39.6-103.4c0-92.8-84.9-168.9-192.6-175.5c.4 5.1 .6 10.3 .6 15.5z"
-                                        />
-                                    </svg>
-                                </template>
-                                Chat
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink
-                                :href="route('toolstop')"
-                                :active="route().current('toolstop')"
-                            >
-                                <template #icon>
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 512 512"
-                                        class="mr-2 h-5 w-5"
+                                        <template #icon>
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                viewBox="0 0 576 512"
+                                                class="mr-2 h-5 w-5"
+                                            >
+                                                <!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                                                <path
+                                                    d="M575.8 255.5c0 18-15 32.1-32 32.1h-32l.7 160.2c0 2.7-.2 5.4-.5 8.1V472c0 22.1-17.9 40-40 40H456c-1.1 0-2.2 0-3.3-.1c-1.4 .1-2.8 .1-4.2 .1H416 392c-22.1 0-40-17.9-40-40V448 384c0-17.7-14.3-32-32-32H256c-17.7 0-32 14.3-32 32v64 24c0 22.1-17.9 40-40 40H160 128.1c-1.5 0-3-.1-4.5-.2c-1.2 .1-2.4 .2-3.6 .2H104c-22.1 0-40-17.9-40-40V360c0-.9 0-1.9 .1-2.8V287.6H32c-18 0-32-14-32-32.1c0-9 3-17 10-24L266.4 8c7-7 15-8 22-8s15 2 21 7L564.8 231.5c8 7 12 15 11 24z"
+                                                />
+                                            </svg>
+                                        </template>
+                                        TopPage
+                                    </ResponsiveNavLink>
+                                    <ResponsiveNavLink
+                                        :href="route('dataview')"
+                                        :active="route().current('dataview')"
                                     >
-                                        <!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                                        <path
-                                            d="M78.6 5C69.1-2.4 55.6-1.5 47 7L7 47c-8.5 8.5-9.4 22-2.1 31.6l80 104c4.5 5.9 11.6 9.4 19 9.4h54.1l109 109c-14.7 29-10 65.4 14.3 89.6l112 112c12.5 12.5 32.8 12.5 45.3 0l64-64c12.5-12.5 12.5-32.8 0-45.3l-112-112c-24.2-24.2-60.6-29-89.6-14.3l-109-109V104c0-7.5-3.5-14.5-9.4-19L78.6 5zM19.9 396.1C7.2 408.8 0 426.1 0 444.1C0 481.6 30.4 512 67.9 512c18 0 35.3-7.2 48-19.9L233.7 374.3c-7.8-20.9-9-43.6-3.6-65.1l-61.7-61.7L19.9 396.1zM512 144c0-10.5-1.1-20.7-3.2-30.5c-2.4-11.2-16.1-14.1-24.2-6l-63.9 63.9c-3 3-7.1 4.7-11.3 4.7H352c-8.8 0-16-7.2-16-16V102.6c0-4.2 1.7-8.3 4.7-11.3l63.9-63.9c8.1-8.1 5.2-21.8-6-24.2C388.7 1.1 378.5 0 368 0C288.5 0 224 64.5 224 144l0 .8 85.3 85.3c36-9.1 75.8 .5 104 28.7L429 274.5c49-23 83-72.8 83-130.5zM56 432a24 24 0 1 1 48 0 24 24 0 1 1 -48 0z"
-                                        />
-                                    </svg>
-                                </template>
-                                Tools
-                            </ResponsiveNavLink>
-                            <div v-if="$page.props.auth.user" class="mt-6">
-                                <div class="mx-4 h-px bg-ptr-dark-pink"></div>
-                                <!-- Authentication -->
-                                <form method="POST" @submit.prevent="logout">
-                                    <ResponsiveNavLink as="button">
-                                        <template #icon
-                                            ><svg
+                                        <template #icon>
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                viewBox="0 0 576 512"
+                                                class="mr-2 h-5 w-5"
+                                            >
+                                                <!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                                                <path
+                                                    d="M88.7 223.8L0 375.8V96C0 60.7 28.7 32 64 32H181.5c17 0 33.3 6.7 45.3 18.7l26.5 26.5c12 12 28.3 18.7 45.3 18.7H416c35.3 0 64 28.7 64 64v32H144c-22.8 0-43.8 12.1-55.3 31.8zm27.6 16.1C122.1 230 132.6 224 144 224H544c11.5 0 22 6.1 27.7 16.1s5.7 22.2-.1 32.1l-112 192C453.9 474 443.4 480 432 480H32c-11.5 0-22-6.1-27.7-16.1s-5.7-22.2 .1-32.1l112-192z"
+                                                />
+                                            </svg>
+                                        </template>
+                                        Data
+                                    </ResponsiveNavLink>
+                                    <ResponsiveNavLink
+                                        :href="route('adddata')"
+                                        :active="route().current('adddata')"
+                                    >
+                                        <template #icon>
+                                            <svg
                                                 xmlns="http://www.w3.org/2000/svg"
                                                 viewBox="0 0 512 512"
                                                 class="mr-2 h-5 w-5"
                                             >
                                                 <!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                                                 <path
-                                                    d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L96 96c-17.7 0-32 14.3-32 32l0 256c0 17.7 14.3 32 32 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-64 0c-53 0-96-43-96-96L0 128C0 75 43 32 96 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32z"
+                                                    d="M156.6 384.9L125.7 354c-8.5-8.5-11.5-20.8-7.7-32.2c3-8.9 7-20.5 11.8-33.8L24 288c-8.6 0-16.6-4.6-20.9-12.1s-4.2-16.7 .2-24.1l52.5-88.5c13-21.9 36.5-35.3 61.9-35.3l82.3 0c2.4-4 4.8-7.7 7.2-11.3C289.1-4.1 411.1-8.1 483.9 5.3c11.6 2.1 20.6 11.2 22.8 22.8c13.4 72.9 9.3 194.8-111.4 276.7c-3.5 2.4-7.3 4.8-11.3 7.2v82.3c0 25.4-13.4 49-35.3 61.9l-88.5 52.5c-7.4 4.4-16.6 4.5-24.1 .2s-12.1-12.2-12.1-20.9V380.8c-14.1 4.9-26.4 8.9-35.7 11.9c-11.2 3.6-23.4 .5-31.8-7.8zM384 168a40 40 0 1 0 0-80 40 40 0 1 0 0 80z"
                                                 />
                                             </svg>
                                         </template>
-                                        Log Out
+                                        Add Data
                                     </ResponsiveNavLink>
-                                </form>
+                                    <ResponsiveNavLink
+                                        :href="route('chatview')"
+                                        :active="route().current('chatview')"
+                                    >
+                                        <template #icon>
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                viewBox="0 0 640 512"
+                                                class="mr-2 h-5 w-5"
+                                            >
+                                                <!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                                                <path
+                                                    d="M208 352c114.9 0 208-78.8 208-176S322.9 0 208 0S0 78.8 0 176c0 38.6 14.7 74.3 39.6 103.4c-3.5 9.4-8.7 17.7-14.2 24.7c-4.8 6.2-9.7 11-13.3 14.3c-1.8 1.6-3.3 2.9-4.3 3.7c-.5 .4-.9 .7-1.1 .8l-.2 .2 0 0 0 0C1 327.2-1.4 334.4 .8 340.9S9.1 352 16 352c21.8 0 43.8-5.6 62.1-12.5c9.2-3.5 17.8-7.4 25.3-11.4C134.1 343.3 169.8 352 208 352zM448 176c0 112.3-99.1 196.9-216.5 207C255.8 457.4 336.4 512 432 512c38.2 0 73.9-8.7 104.7-23.9c7.5 4 16 7.9 25.2 11.4c18.3 6.9 40.3 12.5 62.1 12.5c6.9 0 13.1-4.5 15.2-11.1c2.1-6.6-.2-13.8-5.8-17.9l0 0 0 0-.2-.2c-.2-.2-.6-.4-1.1-.8c-1-.8-2.5-2-4.3-3.7c-3.6-3.3-8.5-8.1-13.3-14.3c-5.5-7-10.7-15.4-14.2-24.7c24.9-29 39.6-64.7 39.6-103.4c0-92.8-84.9-168.9-192.6-175.5c.4 5.1 .6 10.3 .6 15.5z"
+                                                />
+                                            </svg>
+                                        </template>
+                                        Chat
+                                    </ResponsiveNavLink>
+                                    <ResponsiveNavLink
+                                        :href="route('toolstop')"
+                                        :active="route().current('toolstop')"
+                                    >
+                                        <template #icon>
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                viewBox="0 0 512 512"
+                                                class="mr-2 h-5 w-5"
+                                            >
+                                                <!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                                                <path
+                                                    d="M78.6 5C69.1-2.4 55.6-1.5 47 7L7 47c-8.5 8.5-9.4 22-2.1 31.6l80 104c4.5 5.9 11.6 9.4 19 9.4h54.1l109 109c-14.7 29-10 65.4 14.3 89.6l112 112c12.5 12.5 32.8 12.5 45.3 0l64-64c12.5-12.5 12.5-32.8 0-45.3l-112-112c-24.2-24.2-60.6-29-89.6-14.3l-109-109V104c0-7.5-3.5-14.5-9.4-19L78.6 5zM19.9 396.1C7.2 408.8 0 426.1 0 444.1C0 481.6 30.4 512 67.9 512c18 0 35.3-7.2 48-19.9L233.7 374.3c-7.8-20.9-9-43.6-3.6-65.1l-61.7-61.7L19.9 396.1zM512 144c0-10.5-1.1-20.7-3.2-30.5c-2.4-11.2-16.1-14.1-24.2-6l-63.9 63.9c-3 3-7.1 4.7-11.3 4.7H352c-8.8 0-16-7.2-16-16V102.6c0-4.2 1.7-8.3 4.7-11.3l63.9-63.9c8.1-8.1 5.2-21.8-6-24.2C388.7 1.1 378.5 0 368 0C288.5 0 224 64.5 224 144l0 .8 85.3 85.3c36-9.1 75.8 .5 104 28.7L429 274.5c49-23 83-72.8 83-130.5zM56 432a24 24 0 1 1 48 0 24 24 0 1 1 -48 0z"
+                                                />
+                                            </svg>
+                                        </template>
+                                        Tools
+                                    </ResponsiveNavLink>
+                                    <div
+                                        v-if="$page.props.auth.user"
+                                        class="mt-6"
+                                    >
+                                        <div
+                                            class="mx-4 h-px bg-ptr-dark-pink"
+                                        ></div>
+                                        <!-- Authentication -->
+                                        <form
+                                            method="POST"
+                                            @submit.prevent="logout"
+                                        >
+                                            <ResponsiveNavLink as="button">
+                                                <template #icon
+                                                    ><svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        viewBox="0 0 512 512"
+                                                        class="mr-2 h-5 w-5"
+                                                    >
+                                                        <!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                                                        <path
+                                                            d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L96 96c-17.7 0-32 14.3-32 32l0 256c0 17.7 14.3 32 32 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-64 0c-53 0-96-43-96-96L0 128C0 75 43 32 96 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32z"
+                                                        />
+                                                    </svg>
+                                                </template>
+                                                Log Out
+                                            </ResponsiveNavLink>
+                                        </form>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div
-                        class="relative hidden max-h-full min-h-full w-0 bg-ptr-light-pink lg:flex lg:w-12 lg:flex-col xl:hidden"
+                        v-if="!isSideOpen"
+                        class="relative hidden max-h-full min-h-full w-0 bg-ptr-light-pink lg:flex lg:w-12 lg:flex-col"
                     >
                         <div class="customSticky h-fit w-full">
                             <div class="mx-auto mt-2 w-fit">
@@ -423,10 +556,10 @@ const logout = () => {
                     <!-- Page Heading -->
                     <header
                         v-if="$slots.header"
-                        :style="headerStyle"
+                        :style="props.headerStyle"
                         class="bg-[#ffedf3]"
                     >
-                        <div class="mx-auto py-3 px-6 lg:px-12">
+                        <div class="mx-auto py-3 px-6">
                             <slot name="header" />
                         </div>
                     </header>

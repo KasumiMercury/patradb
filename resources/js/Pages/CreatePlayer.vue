@@ -142,6 +142,13 @@ const seekDif = (seek, diff) => {
     return seek(diff);
 };
 
+const play = (play) => {
+    return play();
+};
+const pause = (pause) => {
+    return pause();
+};
+
 const timelinePlayAt = (time) => {
     let youtube = youtubeComponent.value;
     youtube.playAt(time);
@@ -182,26 +189,26 @@ const timelinePlayAt = (time) => {
         :TopNavFontStyle="TopNavFontStyle"
     >
         <template #header>
-            <p class="font-semibold text-xs text-gray-800">
+            <p class="text-xs font-semibold text-gray-800">
                 <Link :href="route('adddata')" class="underline">AddData</Link>
                 / Player
             </p>
         </template>
 
         <div class="w-full">
-            <div class="mx-auto pt-4 w-full">
+            <div class="mx-auto w-full pt-4">
                 <div
                     v-if="step != 0"
-                    class="ml-0 lg:ml-2 w-fit mb-3 lg:mb-6 px-8"
+                    class="ml-0 mb-3 w-fit px-8 lg:ml-2 lg:mb-6"
                 >
                     <button
-                        class="text-base lg:text-lg py-1 lg:py-2 px-3 lg:px-6 bg-gray-800 text-white rounded-lg flex items-center"
+                        class="flex items-center rounded-lg bg-gray-800 py-1 px-3 text-base text-white lg:py-2 lg:px-6 lg:text-lg"
                         @click="prevStep()"
                     >
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 0 256 512"
-                            class="w-4 h-4 lg:w-5 lg:h-5 fill-white"
+                            class="h-4 w-4 fill-white lg:h-5 lg:w-5"
                         >
                             <!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                             <path
@@ -212,10 +219,10 @@ const timelinePlayAt = (time) => {
                     </button>
                 </div>
                 <div
-                    class="mx-auto max-w-5xl w-full aspect-video relative px-6"
+                    class="relative mx-auto w-full max-w-5xl px-6"
                     ref="youtubeWindowRef"
                 >
-                    <template v-if="step != 0">
+                    <div class="aspect-video w-full" v-if="step >= 1">
                         <ResponsiveYoutubeWindow
                             ref="youtubeComponent"
                             :videoId="videoId"
@@ -223,18 +230,25 @@ const timelinePlayAt = (time) => {
                             @currentTimeUpdate="setCurrentTime"
                             @getVideoLength="setVideoLength"
                         >
-                            <template v-slot:activator="{ play, seek }">
+                            <template
+                                v-slot:activator="{
+                                    play,
+                                    pause,
+                                    seek,
+                                    ytStatus,
+                                }"
+                            >
                                 <div class="flex justify-around">
                                     <button
                                         v-on:click="seekDif(seek, -600)"
-                                        class="text-sm lg:text-base text-gray-900"
+                                        class="text-sm text-gray-900 lg:text-base"
                                     >
                                         <svg
                                             stroke-width="1"
                                             viewBox="0 0 24 24"
                                             xmlns="http://www.w3.org/2000/svg"
                                             aria-hidden="true"
-                                            class="w-8 h-8 lg:w-12 lg:h-12 stroke-white fill-none"
+                                            class="h-8 w-8 fill-none stroke-white lg:h-12 lg:w-12"
                                         >
                                             <path
                                                 transform="translate(-5)"
@@ -255,14 +269,14 @@ const timelinePlayAt = (time) => {
                                     </button>
                                     <button
                                         v-on:click="seekDif(seek, -10)"
-                                        class="text-sm lg:text-base text-gray-900"
+                                        class="text-sm text-gray-900 lg:text-base"
                                     >
                                         <svg
                                             stroke-width="1"
                                             viewBox="0 0 24 24"
                                             xmlns="http://www.w3.org/2000/svg"
                                             aria-hidden="true"
-                                            class="w-8 h-8 lg:w-12 lg:h-12 stroke-white fill-none"
+                                            class="h-8 w-8 fill-none stroke-white lg:h-12 lg:w-12"
                                         >
                                             <path
                                                 stroke-linecap="round"
@@ -282,14 +296,14 @@ const timelinePlayAt = (time) => {
                                     </button>
                                     <button
                                         v-on:click="seekDif(seek, -1)"
-                                        class="text-sm lg:text-base text-gray-900"
+                                        class="text-sm text-gray-900 lg:text-base"
                                     >
                                         <svg
                                             stroke-width="1"
                                             viewBox="0 0 24 24"
                                             xmlns="http://www.w3.org/2000/svg"
                                             aria-hidden="true"
-                                            class="w-8 h-8 lg:w-12 lg:h-12 stroke-white fill-none"
+                                            class="h-8 w-8 fill-none stroke-white lg:h-12 lg:w-12"
                                         >
                                             <path
                                                 stroke-linecap="round"
@@ -309,15 +323,47 @@ const timelinePlayAt = (time) => {
                                         </svg>
                                     </button>
                                     <button
+                                        v-if="ytStatus"
+                                        v-on:click="pause(pause)"
+                                        class="text-sm text-gray-900 lg:text-base"
+                                    >
+                                        <svg
+                                            class="h-6 w-6 fill-white lg:h-10 lg:w-10"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 320 512"
+                                        >
+                                            <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                                            <path
+                                                d="M48 64C21.5 64 0 85.5 0 112V400c0 26.5 21.5 48 48 48H80c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H48zm192 0c-26.5 0-48 21.5-48 48V400c0 26.5 21.5 48 48 48h32c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H240z"
+                                            />
+                                        </svg>
+                                    </button>
+                                    <button
+                                        v-else
+                                        v-on:click="play(play)"
+                                        class="text-sm text-gray-900 lg:text-base"
+                                    >
+                                        <svg
+                                            class="h-6 w-6 fill-white lg:h-10 lg:w-10"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 384 512"
+                                        >
+                                            <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                                            <path
+                                                d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"
+                                            />
+                                        </svg>
+                                    </button>
+                                    <button
                                         v-on:click="seekDif(seek, 1)"
-                                        class="text-sm lg:text-base rounded-xl text-gray-900"
+                                        class="rounded-xl text-sm text-gray-900 lg:text-base"
                                     >
                                         <svg
                                             stroke-width="1"
                                             viewBox="0 0 24 24"
                                             xmlns="http://www.w3.org/2000/svg"
                                             aria-hidden="true"
-                                            class="w-8 h-8 lg:w-12 lg:h-12 stroke-white fill-none"
+                                            class="h-8 w-8 fill-none stroke-white lg:h-12 lg:w-12"
                                         >
                                             <path
                                                 stroke-linecap="round"
@@ -337,14 +383,14 @@ const timelinePlayAt = (time) => {
                                     </button>
                                     <button
                                         v-on:click="seekDif(seek, 10)"
-                                        class="text-sm lg:text-base text-gray-900"
+                                        class="text-sm text-gray-900 lg:text-base"
                                     >
                                         <svg
                                             stroke-width="1"
                                             viewBox="0 0 24 24"
                                             xmlns="http://www.w3.org/2000/svg"
                                             aria-hidden="true"
-                                            class="w-8 h-8 lg:w-12 lg:h-12 stroke-white fill-none"
+                                            class="h-8 w-8 fill-none stroke-white lg:h-12 lg:w-12"
                                         >
                                             <path
                                                 stroke-linecap="round"
@@ -364,14 +410,14 @@ const timelinePlayAt = (time) => {
                                     </button>
                                     <button
                                         v-on:click="seekDif(seek, 600)"
-                                        class="text-sm lg:text-base text-gray-900"
+                                        class="text-sm text-gray-900 lg:text-base"
                                     >
                                         <svg
                                             stroke-width="1"
                                             viewBox="0 0 24 24"
                                             xmlns="http://www.w3.org/2000/svg"
                                             aria-hidden="true"
-                                            class="w-8 h-8 lg:w-12 lg:h-12 stroke-white fill-none"
+                                            class="h-8 w-8 fill-none stroke-white lg:h-12 lg:w-12"
                                         >
                                             <path
                                                 transform="translate(5)"
@@ -393,19 +439,19 @@ const timelinePlayAt = (time) => {
                                 </div>
                             </template>
                         </ResponsiveYoutubeWindow>
-                    </template>
+                    </div>
                 </div>
-                <div v-if="step == 0" class="mt-12 px-6">
+                <div v-if="step == 0" class="mx-auto mt-12 max-w-7xl px-6">
                     <transition>
                         <div
-                            class="mx-auto w-fit my-4 flex flex-col items-center"
+                            class="mx-auto my-4 flex w-fit flex-col items-center"
                             v-if="existCookies()"
                         >
-                            <p class="text-sm text-[#c20063] animate-bounce">
+                            <p class="animate-bounce text-sm text-[#c20063]">
                                 前回、入力途中のデータがあります。
                             </p>
                             <button
-                                class="text-base my-2 py-2 px-8 bg-[#c20063] text-white rounded-lg"
+                                class="my-2 rounded-lg bg-[#c20063] py-2 px-8 text-base text-white"
                                 @click="loadCookies()"
                             >
                                 Load
@@ -413,7 +459,7 @@ const timelinePlayAt = (time) => {
                         </div>
                     </transition>
                     <InputLabel for="inputUrl" value="YouTube Video URL" />
-                    <div class="w-full flex flex-col items-end">
+                    <div class="flex w-full flex-col items-end">
                         <TextInput
                             id="inputUrl"
                             type="text"
@@ -423,29 +469,29 @@ const timelinePlayAt = (time) => {
                             autofocus
                         />
                         <button
-                            class="text-xl rounded-xl bg-gray-700 text-white px-6 py-2 my-2"
-                            @click="getClipBoard"
+                            class="my-2 rounded-xl bg-gray-700 px-6 py-2 text-xl text-white"
+                            @click="getClipBoard()"
                         >
                             Paste
                         </button>
                     </div>
-                    <p v-if="inputUrlError" class="text-red-600 text-right">
+                    <p v-if="inputUrlError" class="text-right text-red-600">
                         YouTubeのURLを入力してください
                     </p>
                     <transition>
                         <div
-                            class="mx-auto w-fit mt-12"
+                            class="mx-auto mt-12 w-fit"
                             v-if="inputUrl != '' && !inputUrlError"
                         >
                             <button
-                                class="text-3xl py-3 px-12 bg-[#c20063] text-white rounded-xl flex items-center shadow-sm shadow-[#550341]"
+                                class="flex items-center rounded-xl bg-[#c20063] py-3 px-12 text-3xl text-white shadow-sm shadow-[#550341]"
                                 @click="getVideoId()"
                             >
                                 Next
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     viewBox="0 0 256 512"
-                                    class="w-8 h-8 fill-white animate-side-bounce"
+                                    class="h-8 w-8 animate-side-bounce fill-white"
                                 >
                                     <!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                                     <path
@@ -456,7 +502,7 @@ const timelinePlayAt = (time) => {
                         </div>
                     </transition>
                 </div>
-                <div v-if="step == 1" class="min-h-screen w-full mb-12 mt-0">
+                <div v-if="step == 1" class="mb-12 mt-0 min-h-screen w-full">
                     <InteractiveTimeline
                         :videoLength="videoLength"
                         :currentTime="currentTime"

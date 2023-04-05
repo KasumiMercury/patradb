@@ -26,6 +26,13 @@ const headerStyle = ref({
     "background-color": "#4a0139",
 });
 </script>
+<!-- <script>
+import PlayerLayout from "../Layouts/PlayerLayout.vue";
+
+export default {
+    layout: PlayerLayout,
+};
+</script> -->
 <template>
     <AppLayout
         title="TopPage"
@@ -34,18 +41,18 @@ const headerStyle = ref({
         :headerStyle="headerStyle"
     >
         <template #header>
-            <p class="font-semibold text-xs text-gray-100">TopPage</p>
+            <p class="text-xs font-semibold text-gray-100">TopPage</p>
         </template>
 
         <div>
             <TodayStream :data="stream" />
             <TodaySchedule :data="today" />
             <MonthlySchedule :monthData="month" :otherData="other" />
-            <div class="w-fit mr-4 ml-auto mt-2">
+            <div class="mr-4 ml-auto mt-2 w-fit">
                 <Link
                     as="button"
                     :href="route('create.schedule')"
-                    class="text-lg py-8 px-12 rounded-xl bg-[#c20063] text-[#ffedf3]"
+                    class="rounded-xl bg-[#c20063] py-8 px-12 text-lg text-[#ffedf3]"
                 >
                     スケジュール登録
                 </Link>

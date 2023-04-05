@@ -21,6 +21,9 @@ const getVideoLength = () => {
 const play = () => {
     youtube.value.playVideo();
 };
+const pause = () => {
+    youtube.value.pauseVideo();
+};
 const seekDiff = (data) => {
     youtube.value.seekTo(currentTime.value + data, true);
     currentTime.value = parseInt(youtube.value.getCurrentTime(), 10);
@@ -30,6 +33,7 @@ const playAt = (time) => {
 };
 
 const stateChange = () => {
+    console.log("stateChange");
     if (youtube.value.getPlayerState() == 1) {
         ytStatus.value = true;
         interval.value = setInterval(function () {
@@ -65,15 +69,15 @@ defineExpose({
 <template>
     <div
         :class="{
-            'w-full aspect-video my-0': !isFloatWindow,
-            'fixed mb-12 lg:mb-0 pb-safe lg:pb-0 bottom-0 right-0 z-50 pt-3 pl-3 pr-2 rounded-tl-xl bg-zinc-800 shadow-xl':
+            'my-0 aspect-video w-full': !isFloatWindow,
+            'fixed bottom-0 right-0 z-50 mb-12 rounded-tl-xl bg-zinc-800 pt-3 pl-3 pr-2 shadow-xl pb-safe lg:mb-0 lg:pb-0':
                 isFloatWindow,
         }"
     >
         <div
             class="bg-zinc-800"
             :class="{
-                'w-full h-full': !isFloatWindow,
+                'h-full w-full': !isFloatWindow,
                 'aspect-video w-64 md:w-96 ': isFloatWindow,
             }"
         >
@@ -86,14 +90,26 @@ defineExpose({
                 @state-change="stateChange"
             />
         </div>
-        <div v-if="isFloatWindow" class="pb-4 pt-4 w-full">
-            <slot name="activator" v-bind:play="play" :seek="seekDiff" />
+        <div v-if="isFloatWindow" class="w-full pb-4 pt-4">
+            <slot
+                name="activator"
+                v-bind:play="play"
+                :pause="pause"
+                :seek="seekDiff"
+                v-bind:ytStatus="ytStatus"
+            />
         </div>
     </div>
     <div
         v-if="!isFloatWindow"
-        class="w-full max-w-xl mx-auto bg-zinc-800 px-4 py-1"
+        class="mx-auto w-full max-w-xl bg-zinc-800 px-4 py-1"
     >
-        <slot name="activator" v-bind:play="play" :seek="seekDiff" />
+        <slot
+            name="activator"
+            v-bind:play="play"
+            :pause="pause"
+            :seek="seekDiff"
+            v-bind:ytStatus="ytStatus"
+        />
     </div>
 </template>
