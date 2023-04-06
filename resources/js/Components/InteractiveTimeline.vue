@@ -757,7 +757,7 @@ const updateTimeArray = () => {
     for (let i = 0; i < timeSetArray.value.length; i++) {
         if (timeSetArray.value[i].length == 1) {
             errorExist.value = true;
-        };
+        }
     }
 };
 
@@ -1103,7 +1103,7 @@ svg {
 </style>
 <template>
     <div class="w-full">
-        <div class="relative mb-28 h-96 w-full">
+        <div class="relative h-96 w-full">
             <div
                 class="absolute top-0 left-0 h-fit w-full min-w-full max-w-full overflow-hidden"
                 id="timeline-wrapper"
@@ -1138,7 +1138,7 @@ svg {
             ></GameBoyController>
         </div>
         <!-- time dsiplay components -->
-        <div class="grid w-full px-4 pb-96 md:grid-cols-2 md:gap-4">
+        <div class="grid w-full px-4 md:grid-cols-2 md:gap-4">
             <div
                 v-for="(times, index) in timeSetArray"
                 :key="index"
@@ -1179,5 +1179,4 @@ svg {
             </div>
         </div>
     </div>
-    {{ errorExist }}
 </template>

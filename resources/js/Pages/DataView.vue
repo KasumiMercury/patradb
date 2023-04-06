@@ -1,43 +1,36 @@
 <script setup>
 import { Head, Link } from "@inertiajs/vue3";
 import { ref, onMounted, onUnmounted } from "vue";
-import AppLayout from "@/Layouts/AppLayout.vue";
 
 defineProps({
     today: Object,
     month: Object,
     other: Object,
 });
-const TopNavStyle = ref({
-    "background-color": "#2d2a2d",
-    "border-bottom": "5px solid",
-    "border-image-source":
-        "linear-gradient(45deg, #B67B03 0%, #DAAF08 45%, #FEE9A0 70%, #DAAF08 85%, #B67B03 90% 100%)",
-    "border-image-slice": 1,
-});
-const TopNavFontStyle = ref({
-    color: "#fffafb",
-});
+
+const mounted = ref(false);
+
+onMounted(() => mounted.value = true);
+
 </script>
 <script>
-import PlayerLayout from "../Layouts/PlayerLayout.vue";
+import AppLayout from "../Layouts/AppLayout.vue";
 
 export default {
-    layout: (h, page) => h(PlayerLayout, { testValue: "test" }, () => page)
+    layout: AppLayout,
 };
 </script>
 <template>
-    <AppLayout
-        title="AddData"
-        :TopNavStyle="TopNavStyle"
-        :TopNavFontStyle="TopNavFontStyle"
-    >
-        <template #header>
-            <p class="font-semibold text-xs text-gray-800">Data</p>
-        </template>
+    <div>
+        <Head>
+            <title>Data</title>
+        </Head>
+        <Teleport to='[data-slot="header"]' v-if="mounted">
+            <p class="text-xs font-semibold text-gray-800">Data</p>
+        </Teleport>
 
         <div>
-            <div class="max-w-7xl mx-auto pt-4 px-4 sm:px-6 lg:px-8"></div>
+            <div class="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8"></div>
         </div>
-    </AppLayout>
+    </div>
 </template>

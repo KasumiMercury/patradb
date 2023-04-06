@@ -6,9 +6,6 @@ import ResponsiveNavLink from "@/Components/ResponsiveNavLink.vue";
 
 const props = defineProps({
     title: String,
-    TopNavStyle: Object,
-    TopNavFontStyle: Object,
-    headerStyle: Object,
 });
 
 /* Get Device Width */
@@ -16,8 +13,8 @@ const innerWidth = ref(2000);
 const isServer = typeof window === "undefined";
 
 if (!isServer) {
-        innerWidth.value = window.innerWidth;
-    }
+    innerWidth.value = window.innerWidth;
+}
 
 const checkWindowSize = () => {
     if (window.innerWidth >= 1280) {
@@ -55,6 +52,15 @@ const minimumWindow = () => {
 const logout = () => {
     router.post(route("logout"));
 };
+const TopNavStyle = ref({
+    "background-color": "#2d2a2d",
+});
+const TopNavFontStyle = ref({
+    color: "#fffafb",
+});
+const headerStyle = ref({
+    "background-color": "#4a0139",
+});
 </script>
 <style>
 .bg_gold {
@@ -84,19 +90,26 @@ const logout = () => {
     position: -webkit-sticky;
     top: 0;
 }
+.TopNavBar {
+    border-bottom: 5px solid;
+    border-image-source: linear-gradient(
+        45deg,
+        #b67b03 0%,
+        #daaf08 45%,
+        #fee9a0 70%,
+        #daaf08 85%,
+        #b67b03 90% 100%
+    );
+    border-image-slice: 1;
+}
 </style>
 <template>
     <div class="bg-[#ffedf3]">
-        <Head :title="props.title" />
-
         <Banner />
 
         <div class="flex min-h-screen flex-col py-0">
             <!-- App TopBar Navigation-->
-            <nav
-                class="relative z-40 border-gray-100 bg-[#ff99cd] pt-safe"
-                :style="props.TopNavStyle"
-            >
+            <nav class="TopNavBar relative z-40 bg-ptr-dark-brown pt-safe">
                 <!-- Primary Navigation Menu -->
                 <div class="mx-auto max-w-7xl py-3 px-4 sm:px-6 lg:px-8">
                     <div class="flex h-16 justify-between lg:mx-auto lg:w-fit">
@@ -106,8 +119,7 @@ const logout = () => {
                                 <Link :href="route('toppage')">
                                     <!-- <ApplicationMark class="block h-9 w-auto" /> -->
                                     <h1
-                                        class="ml-0 mr-auto px-4 font-Abril text-2xl text-white md:ml-2 md:text-4xl lg:mx-0"
-                                        :style="props.TopNavFontStyle"
+                                        class="ml-0 mr-auto px-4 font-Abril text-2xl tracking-widest text-[#fffafb] md:ml-2 md:text-4xl lg:mx-0"
                                     >
                                         Unofficial Patra DB
                                     </h1>
@@ -554,14 +566,8 @@ const logout = () => {
 
                 <div class="z-0 lg:grow">
                     <!-- Page Heading -->
-                    <header
-                        v-if="$slots.header"
-                        :style="props.headerStyle"
-                        class="bg-[#ffedf3]"
-                    >
-                        <div class="mx-auto py-3 px-6">
-                            <slot name="header" />
-                        </div>
+                    <header class="bg-[#ffedf3]">
+                        <div class="mx-auto py-3 px-6" data-slot="header"></div>
                     </header>
 
                     <!-- Page Content -->

@@ -1,46 +1,45 @@
 <script setup>
-import { Link } from "@inertiajs/vue3";
+import { Head,Link } from "@inertiajs/vue3";
 import { ref, onMounted, onUnmounted } from "vue";
-import AppLayout from "@/Layouts/AppLayout.vue";
 
 defineProps({
     today: Object,
     month: Object,
     other: Object,
 });
-const TopNavStyle = ref({
-    "background-color": "#2d2a2d",
-    "border-bottom": "5px solid",
-    "border-image-source":
-        "linear-gradient(45deg, #B67B03 0%, #DAAF08 45%, #FEE9A0 70%, #DAAF08 85%, #B67B03 90% 100%)",
-    "border-image-slice": 1,
-});
-const TopNavFontStyle = ref({
-    color: "#fffafb",
-});
+
+const mounted = ref(false);
+
+onMounted(() => mounted.value = true);
+</script>
+<script>
+import AppLayout from "../Layouts/AppLayout.vue";
+
+export default {
+    layout: AppLayout,
+};
 </script>
 <template>
-    <AppLayout
-        title="AddData"
-        :TopNavStyle="TopNavStyle"
-        :TopNavFontStyle="TopNavFontStyle"
-    >
-        <template #header>
-            <p class="font-semibold text-xs text-gray-800">AddData</p>
-        </template>
+    <div>
+        <Head>
+            <title>AddData</title>
+        </Head>
+        <Teleport to='[data-slot="header"]' v-if="mounted">
+            <p class="text-xs font-semibold text-gray-800">AddData</p>
+        </Teleport>
 
         <div>
-            <div class="max-w-7xl mx-auto pt-4 px-4 sm:px-6 lg:px-8">
-                <div class="w-fit mx-auto mt-12">
+            <div class="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
+                <div class="mx-auto mt-12 w-fit">
                     <Link
                         as="button"
                         :href="route('create.player')"
-                        class="text-lg py-8 px-12 rounded-xl bg-[#c20063] text-[#ffedf3]"
+                        class="rounded-xl bg-[#c20063] py-8 px-12 text-lg text-[#ffedf3]"
                     >
                         プレイヤー登録
                     </Link>
                 </div>
             </div>
         </div>
-    </AppLayout>
+    </div>
 </template>

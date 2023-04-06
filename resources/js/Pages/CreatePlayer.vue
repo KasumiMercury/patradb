@@ -1,23 +1,10 @@
 <script setup>
-import { Link } from "@inertiajs/vue3";
+import { Head,Link } from "@inertiajs/vue3";
 import { ref, computed, onMounted, inject, onUnmounted } from "vue";
-import AppLayout from "@/Layouts/AppLayout.vue";
 import InputLabel from "@/Components/InputLabel.vue";
 import TextInput from "@/Components/TextInput.vue";
 import ResponsiveYoutubeWindow from "@/Components/ResponsiveYoutubeWindow.vue";
 import InteractiveTimeline from "@/Components/InteractiveTimeline.vue";
-import YouTube from "vue3-youtube";
-
-const TopNavStyle = ref({
-    "background-color": "#2d2a2d",
-    "border-bottom": "5px solid",
-    "border-image-source":
-        "linear-gradient(45deg, #B67B03 0%, #DAAF08 45%, #FEE9A0 70%, #DAAF08 85%, #B67B03 90% 100%)",
-    "border-image-slice": 1,
-});
-const TopNavFontStyle = ref({
-    color: "#fffafb",
-});
 
 const $cookies = inject("$cookies");
 
@@ -42,6 +29,7 @@ onMounted(() => {
         });
     });
     observer.observe(youtubeWindowRef.value);
+    mounted.value = true
 });
 
 const existCookies = () => {
@@ -154,6 +142,9 @@ const timelinePlayAt = (time) => {
     youtube.playAt(time);
     currentTime.value = time;
 };
+
+const mounted = ref(false);
+
 </script>
 
 <style scoped>
@@ -182,24 +173,27 @@ const timelinePlayAt = (time) => {
     margin: 0;
 }
 </style>
-<template>
-    <AppLayout
-        title="AddData"
-        :TopNavStyle="TopNavStyle"
-        :TopNavFontStyle="TopNavFontStyle"
-    >
-        <template #header>
-            <p class="text-xs font-semibold text-gray-800">
-                <Link :href="route('adddata')" class="underline">AddData</Link>
-                / Player
-            </p>
-        </template>
+<script>
+import AppLayout from "../Layouts/AppLayout.vue";
 
+export default {
+    layout: AppLayout,
+};
+</script>
+<template>
+    <Head>
+        <title>CreatePlayer</title>
+    </Head>
+    <Teleport to='[data-slot="header"]' v-if="mounted">
+
+        <p class="text-xs font-semibold text-gray-800"><Link :href="route('adddata')" class="underline">AddData</Link> / CreatePlayer</p>
+    </Teleport>
+    <div>
         <div class="w-full">
             <div class="mx-auto w-full pt-4">
                 <div
                     v-if="step != 0"
-                    class="ml-0 mb-3 w-fit px-8 lg:ml-2 lg:mb-6"
+                    class="mx-auto mb-3 flex max-w-7xl items-start px-8 lg:mb-6"
                 >
                     <button
                         class="flex items-center rounded-lg bg-gray-800 py-1 px-3 text-base text-white lg:py-2 lg:px-6 lg:text-lg"
@@ -208,7 +202,7 @@ const timelinePlayAt = (time) => {
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 0 256 512"
-                            class="h-4 w-4 fill-white lg:h-5 lg:w-5"
+                            class="mr-1 h-3 w-3 fill-white lg:h-4 lg:w-4"
                         >
                             <!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                             <path
@@ -509,7 +503,27 @@ const timelinePlayAt = (time) => {
                         @playAt="timelinePlayAt"
                     ></InteractiveTimeline>
                 </div>
+                <div
+                    v-if="step != 2"
+                    class="mx-auto mt-3 mb-96 flex max-w-7xl justify-center px-8 pb-24 lg:mt-6"
+                >
+                    <button
+                        class="flex items-center rounded-lg bg-ptr-dark-pink py-1 px-3 text-xl text-white shadow-sm shadow-[#550341] lg:py-2 lg:px-6 lg:text-3xl"
+                    >
+                        Next
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 256 512"
+                            class="h-4 w-4 animate-side-bounce fill-white pl-1 lg:h-6 lg:w-6"
+                        >
+                            <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                            <path
+                                d="M246.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 256c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l128-128z"
+                            />
+                        </svg>
+                    </button>
+                </div>
             </div>
         </div>
-    </AppLayout>
+    </div>
 </template>

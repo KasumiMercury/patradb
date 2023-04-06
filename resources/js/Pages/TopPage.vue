@@ -1,10 +1,13 @@
 <script setup>
 import { Head, Link } from "@inertiajs/vue3";
 import { ref, onMounted, onUnmounted } from "vue";
-import AppLayout from "@/Layouts/AppLayout.vue";
 import TodayStream from "../Components/TodayStream.vue";
 import TodaySchedule from "../Components/TodaySchedule.vue";
 import MonthlySchedule from "../Components/MonthlySchedule.vue";
+
+const mounted = ref(false);
+
+onMounted(() => mounted.value = true);
 
 defineProps({
     stream: Object,
@@ -12,38 +15,22 @@ defineProps({
     month: Object,
     other: Object,
 });
-const TopNavStyle = ref({
-    "background-color": "#2d2a2d",
-    "border-bottom": "5px solid",
-    "border-image-source":
-        "linear-gradient(45deg, #B67B03 0%, #DAAF08 45%, #FEE9A0 70%, #DAAF08 85%, #B67B03 90% 100%)",
-    "border-image-slice": 1,
-});
-const TopNavFontStyle = ref({
-    color: "#fffafb",
-});
-const headerStyle = ref({
-    "background-color": "#4a0139",
-});
 </script>
-<!-- <script>
-import PlayerLayout from "../Layouts/PlayerLayout.vue";
+<script>
+import AppLayout from "../Layouts/AppLayout.vue";
 
 export default {
-    layout: PlayerLayout,
+    layout: AppLayout,
 };
-</script> -->
+</script>
 <template>
-    <AppLayout
-        title="TopPage"
-        :TopNavStyle="TopNavStyle"
-        :TopNavFontStyle="TopNavFontStyle"
-        :headerStyle="headerStyle"
-    >
-        <template #header>
-            <p class="text-xs font-semibold text-gray-100">TopPage</p>
-        </template>
-
+    <div>
+        <Head>
+            <title>Top</title>
+        </Head>
+        <Teleport to='[data-slot="header"]' v-if="mounted">
+            <p class="text-xs font-semibold text-gray-800">TopPage</p>
+        </Teleport>
         <div>
             <TodayStream :data="stream" />
             <TodaySchedule :data="today" />
@@ -58,5 +45,5 @@ export default {
                 </Link>
             </div>
         </div>
-    </AppLayout>
+    </div>
 </template>

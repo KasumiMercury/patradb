@@ -1,7 +1,6 @@
 <script setup>
 import { Head, Link, usePage } from "@inertiajs/vue3";
 import { ref, onMounted, onUnmounted } from "vue";
-import AppLayout from "@/Layouts/AppLayout.vue";
 import ScheduleForm from "../Components/ScheduleForm.vue";
 
 const today = new Date();
@@ -44,25 +43,27 @@ const endTime = {
     minutes: 59,
 };
 
-const TopNavStyle = ref({
-    "background-color": "#2d2a2d",
-    "border-bottom": "5px solid",
-    "border-image-source":
-        "linear-gradient(45deg, #B67B03 0%, #DAAF08 45%, #FEE9A0 70%, #DAAF08 85%, #B67B03 90% 100%)",
-    "border-image-slice": 1,
-});
-const TopNavFontStyle = ref({
-    color: "#fffafb",
-});
+const mounted = ref(false);
+
+onMounted(() => mounted.value = true);
+</script>
+<script>
+import AppLayout from "../Layouts/AppLayout.vue";
+
+export default {
+    layout: AppLayout,
+};
 </script>
 <template>
-    <AppLayout
-        title="CreateSchedule"
-        :TopNavStyle="TopNavStyle"
-        :TopNavFontStyle="TopNavFontStyle"
-    >
+    <AppLayout>
+        <Head>
+            <title>CreateSchedule</title>
+        </Head>
+        <Teleport to='[data-slot="header"]' v-if="mounted">
+            <p class="text-xs font-semibold text-gray-800">CreateSchedule</p>
+        </Teleport>
         <div>
-            <div class="max-w-7xl mx-auto pt-4 px-4 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
                 <div class="">
                     <ScheduleForm
                         :initialForm="initialForm"
