@@ -22,20 +22,20 @@ defineProps({
 }
 </style>
 <template>
-    <div class="border-b-12 border_gold bg-[#313231]">
+    <div class="border_gold border-b-12 bg-[#313231]">
         <div
-            class="w-full py-4 pl-8 select-none cursor-pointer text-white"
+            class="w-full cursor-pointer select-none py-4 pl-8 text-white"
             @click="isCalendarOpen = !isCalendarOpen"
         >
             <h1 class="text-xl">All schedule</h1>
         </div>
         <transition>
-            <div v-if="isCalendarOpen" class="w-full px-0 mx-0 rounded-b-xl">
+            <div v-if="isCalendarOpen" class="mx-0 w-full rounded-b-xl px-0">
                 <div>
                     <div class="text-sm">
                         <div
                             v-if="Object.keys(monthData).length !== 0"
-                            class="w-full py-4 grid grid-cols-7 gap-0"
+                            class="grid w-full grid-cols-7 gap-0 py-4"
                         >
                             <div
                                 v-for="(dayOfWeek, index) in dayOfWeek"
@@ -47,7 +47,7 @@ defineProps({
                         </div>
                         <div
                             v-else
-                            class="w-full text-xl text-white text-center pb-4"
+                            class="w-full pb-4 text-center text-xl text-white"
                         >
                             <p>NONE DATA</p>
                         </div>
@@ -55,9 +55,9 @@ defineProps({
                 </div>
                 <div
                     v-if="Object.keys(otherData).length !== 0"
-                    class="border-t-2 mt-4"
+                    class="mt-4 border-t-2"
                 >
-                    <h2 class="text-center text-lg pt-4 pb-2">
+                    <h2 class="pt-4 pb-2 text-center text-lg">
                         Other schedule
                     </h2>
                     <div class="text-sm">

@@ -1,5 +1,5 @@
 <script setup>
-import { Head,Link } from "@inertiajs/vue3";
+import { Head, Link } from "@inertiajs/vue3";
 import { ref, computed, onMounted, inject, onUnmounted } from "vue";
 import InputLabel from "@/Components/InputLabel.vue";
 import TextInput from "@/Components/TextInput.vue";
@@ -18,6 +18,8 @@ const isFloatWindow = ref(false);
 const youtubeWindowRef = ref(null);
 const youtubeComponent = ref();
 
+const isTransfer = ref(false);
+
 onMounted(() => {
     const observer = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
@@ -29,23 +31,25 @@ onMounted(() => {
         });
     });
     observer.observe(youtubeWindowRef.value);
-    mounted.value = true
+    mounted.value = true;
 });
 
 const existCookies = () => {
-    let cookiesIsExist = $cookies.isKey("createrPlayerForm");
+    let cookiesIsExist = $cookies.isKey("playerParent");
     return cookiesIsExist;
 };
 const loadCookies = () => {
-    let temp = $cookies.get("createrPlayerForm");
+    let temp = $cookies.get("playerParent");
     videoId.value = temp["videoId"];
-    step.value = temp["step"];
+    isTransfer.value = true;
+    step.value = 1;
 };
 
 const nextStep = () => {
     step.value++;
 };
 const prevStep = () => {
+    isTransfer.value = false;
     step.value--;
 };
 
@@ -96,7 +100,7 @@ const getVideoId = () => {
     if (videoId.value != "") {
         nextStep();
     }
-    $cookies.set("createrPlayerForm", { step: 1, videoId: videoId.value });
+    $cookies.set("playerParent", { videoId: videoId.value });
 };
 
 const inputUrlError = computed(() => {
@@ -144,7 +148,6 @@ const timelinePlayAt = (time) => {
 };
 
 const mounted = ref(false);
-
 </script>
 
 <style scoped>
@@ -185,8 +188,10 @@ export default {
         <title>CreatePlayer</title>
     </Head>
     <Teleport to='[data-slot="header"]' v-if="mounted">
-
-        <p class="text-xs font-semibold text-gray-800"><Link :href="route('adddata')" class="underline">AddData</Link> / CreatePlayer</p>
+        <p class="text-xs font-semibold text-gray-800">
+            <Link :href="route('adddata')" class="underline">AddData</Link> /
+            CreatePlayer
+        </p>
     </Teleport>
     <div>
         <div class="w-full">
@@ -498,30 +503,11 @@ export default {
                 </div>
                 <div v-if="step == 1" class="mb-12 mt-0 min-h-screen w-full">
                     <InteractiveTimeline
+                        :isTransfer="isTransfer"
                         :videoLength="videoLength"
                         :currentTime="currentTime"
                         @playAt="timelinePlayAt"
                     ></InteractiveTimeline>
-                </div>
-                <div
-                    v-if="step != 2"
-                    class="mx-auto mt-3 mb-96 flex max-w-7xl justify-center px-8 pb-24 lg:mt-6"
-                >
-                    <button
-                        class="flex items-center rounded-lg bg-ptr-dark-pink py-1 px-3 text-xl text-white shadow-sm shadow-[#550341] lg:py-2 lg:px-6 lg:text-3xl"
-                    >
-                        Next
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 256 512"
-                            class="h-4 w-4 animate-side-bounce fill-white pl-1 lg:h-6 lg:w-6"
-                        >
-                            <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                            <path
-                                d="M246.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 256c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l128-128z"
-                            />
-                        </svg>
-                    </button>
                 </div>
             </div>
         </div>

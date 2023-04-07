@@ -5,8 +5,8 @@ defineProps({
 </script>
 
 <template>
-    <div class="border-b-12 border_gold bg-[#313231]">
-        <div class="w-full pl-8 py-4 select-none">
+    <div class="border_gold border-b-12 bg-[#313231]">
+        <div class="w-full select-none py-4 pl-8">
             <h1 class="text-xl text-white">In Progress</h1>
         </div>
         <div class="w-full px-4 pb-4">

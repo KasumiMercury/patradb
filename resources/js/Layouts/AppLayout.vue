@@ -256,7 +256,7 @@ const headerStyle = ref({
                         v-if="isSideOpen"
                         class="z-30 hidden min-h-full w-0 overscroll-contain pl-1 lg:absolute lg:flex xl:relative"
                         :class="{
-                            'mx-0 mr-2 border-r border-ptr-dark-brown bg-ptr-light-pink shadow shadow-custom-shadow/50 lg:w-72':
+                            'mx-0 mr-2 border-r border-ptr-dark-brown bg-ptr-light-pink shadow-md shadow-custom-shadow/80 lg:w-72':
                                 isMaximum,
                             'mx-5 lg:w-64': !isMaximum,
                         }"
@@ -272,7 +272,7 @@ const headerStyle = ref({
                                 class="w-full rounded-md lg:flex lg:flex-col"
                                 :class="{
                                     'py-0': isMaximum,
-                                    'border-2 border-ptr-dark-brown bg-ptr-light-pink pb-12 shadow-md shadow-custom-shadow/50':
+                                    'border-2 border-ptr-dark-brown bg-ptr-light-pink pb-12 shadow-lg shadow-custom-shadow/50':
                                         !isMaximum,
                                 }"
                             >

@@ -3,15 +3,17 @@ import TimeInput from "@/Components/TimeInput.vue";
 import chroma from "chroma-js";
 import * as d3 from "d3";
 import pkg from "lodash";
-import { onMounted, onUnmounted, ref, watch } from "vue";
+import { onMounted, onUnmounted, ref, watch, inject } from "vue";
 import FamiController from "./FamiController.vue";
 import GameBoyController from "./GameBoyController.vue";
 const { debounce, chunk, sortedIndexBy } = pkg;
+const $cookies = inject("$cookies");
 
 const isServer = typeof window === "undefined";
 const props = defineProps({
     videoLength: Number,
     currentTime: Number,
+    isTransfer: Boolean,
 });
 const emits = defineEmits(["playAt"]);
 const timelineWrapper = ref();
@@ -120,7 +122,7 @@ let cols = null;
 onMounted(() => {
     field = d3.select("#timeline-wrapper");
     if (!isServer) {
-        window.addEventListener("resize", changeWidth);
+        window.addEventListener("resize", debounce(changeWidth, 200));
     }
     // width setting
     width = timelineWrapper.value.clientWidth;
@@ -273,7 +275,6 @@ onMounted(() => {
 // konami command
 const onKeyDown = (e) => {
     keyInputArray.push(e);
-    console.log(keyInputArray);
     if (keyInputArray.length >= 10) {
         keyInputArray = keyInputArray.slice(-10);
         if (String(keyInputArray) === String(command)) {
@@ -521,7 +522,6 @@ const generateTickArray = (tick, range) => {
     ) {
         tickArray.push(tick * i);
     }
-    // console.log(tickArray);
     return tickArray;
 };
 const getTickFormat = (input) => {
@@ -752,13 +752,13 @@ const updateTimeArray = () => {
         return a - b;
     });
     timeSetArray.value = chunk(timeSet.value, 2);
-    // console.log(timeSetArray.value)
     errorExist.value = false;
     for (let i = 0; i < timeSetArray.value.length; i++) {
         if (timeSetArray.value[i].length == 1) {
             errorExist.value = true;
         }
     }
+    $cookies.set("playerTimeArray", [...timeSet.value]);
 };
 
 // time function
@@ -883,11 +883,9 @@ const undoOperate = () => {
         timeSet.value = histry[histryIndex];
         histryIndex--;
         histry.pop();
-        console.log(histry);
         if (histryIndex == -1) {
             histry[0] = [];
         }
-        console.log(histry);
         updateTimeArray();
         generateColScale();
         updateTimeZoomDisplay();
@@ -1000,6 +998,17 @@ watch(
         timeVal5.push(props.videoLength);
 
         brushG.call(brush.move, [0, xScaleZoom(3630)]);
+
+        if (props.isTransfer && $cookies.isKey("playerTimeArray")) {
+            let temp = $cookies.get("playerTimeArray");
+            timeSet.value = temp;
+            histry.push([...timeSet.value]);
+            histryIndex++;
+            updateTimeArray();
+            generateColScale();
+            updateTimeZoomDisplay();
+            updateTimeMainDisplay();
+        }
     }
 );
 watch(
@@ -1010,7 +1019,6 @@ watch(
 );
 
 const changeTime = () => {
-    console.log("changed");
     updateTimeArray();
     histry.push([...timeSet.value]);
     histryIndex++;
@@ -1103,7 +1111,7 @@ svg {
 </style>
 <template>
     <div class="w-full">
-        <div class="relative h-96 w-full">
+        <div class="relative mb-32 h-96 w-full">
             <div
                 class="absolute top-0 left-0 h-fit w-full min-w-full max-w-full overflow-hidden"
                 id="timeline-wrapper"
@@ -1138,7 +1146,14 @@ svg {
             ></GameBoyController>
         </div>
         <!-- time dsiplay components -->
-        <div class="grid w-full px-4 md:grid-cols-2 md:gap-4">
+        <div
+            class="grid px-4"
+            :class="
+                timeSetArray.length === 1
+                    ? 'mx-auto w-full md:w-1/2'
+                    : 'w-full md:grid-cols-2 md:gap-4'
+            "
+        >
             <div
                 v-for="(times, index) in timeSetArray"
                 :key="index"
@@ -1177,6 +1192,32 @@ svg {
                     @showMenu="showMenu(index * 2 + 1)"
                 ></TimeInput>
             </div>
+        </div>
+        <div
+            class="mx-auto mt-16 mb-96 flex w-fit max-w-7xl flex-col px-8 pb-24 text-center lg:mt-24"
+        >
+            <p
+                v-if="timeSet.length > 1 && errorExist"
+                class="mb-3 mt-6 text-right text-red-600"
+            >
+                登録タイムがひとつのみのブロックがあります。当該ブロックはデータ登録時無視されます。
+            </p>
+            <button
+                v-if="timeSet.length > 1"
+                class="mx-auto flex w-fit items-center whitespace-nowrap rounded-lg bg-ptr-dark-pink py-1 px-3 text-xl text-white shadow-sm shadow-[#550341] lg:py-2 lg:px-6 lg:text-3xl"
+            >
+                Data Launch
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 256 512"
+                    class="h-4 w-4 animate-side-bounce fill-white pl-3 lg:h-6 lg:w-6"
+                >
+                    <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                    <path
+                        d="M246.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 256c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l128-128z"
+                    />
+                </svg>
+            </button>
         </div>
     </div>
 </template>

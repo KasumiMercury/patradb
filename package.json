@@ -3,7 +3,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && vite build --ssr",
-    "lint": "eslint --fix src/*.{vue} && eslint --fix src/**/*.{vue}"
+    "lint": "eslint --fix resources/js/**/*.{vue} && eslint --fix resources/js/**/*.{vue}",
+    "format": "prettier --write resources/js/Components/*.vue"
   },
   "devDependencies": {
     "@inertiajs/vue3": "^1.0.0",

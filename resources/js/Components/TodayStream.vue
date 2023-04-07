@@ -1,5 +1,4 @@
 <script setup>
-import * as PIXI from "pixi.js";
 defineProps({
     data: Object,
 });
@@ -10,16 +9,16 @@ const getTime = (input) => {
 </script>
 <template>
     <div>
-        <div class="bg-[#bf0060] pt-6 lg:pt-12 pb-3 lg:pb-6 px-6 lg:px-8">
-            <div class="w-fit ml-0 mr-auto">
+        <div class="bg-[#bf0060] px-6 pt-6 pb-3 lg:px-8 lg:pt-12 lg:pb-6">
+            <div class="ml-0 mr-auto w-fit">
                 <h1
-                    class="shadow-inner shadow-gray-800 text-xl bg-[#fdfefd] w-fit rounded-3xl py-4 px-8"
+                    class="w-fit rounded-3xl bg-[#fdfefd] py-4 px-8 text-xl shadow-inner shadow-gray-800"
                 >
                     Today's Streaming
                 </h1>
             </div>
-            <div class="bg-[#bf0060] pb-4 mt-8">
-                <div class="rounded-3xl bg_gold p-1.5">
+            <div class="mt-8 bg-[#bf0060] pb-4">
+                <div class="bg_gold rounded-3xl p-1.5">
                     <div class="rounded-3xl bg-[#A73946FF] py-6 px-6 lg:px-12">
                         <p
                             class="text-center text-2xl text-white"
@@ -29,7 +28,7 @@ const getTime = (input) => {
                         </p>
                         <template v-else>
                             <div v-for="(data, index) in data" :key="index">
-                                <p class="bg-white rounded-3xl py-2 px-6 w-fit">
+                                <p class="w-fit rounded-3xl bg-white py-2 px-6">
                                     {{ getTime(data.start_date) }}
                                 </p>
                             </div>
@@ -38,6 +37,6 @@ const getTime = (input) => {
                 </div>
             </div>
         </div>
-        <div class="w-full h-1 bg_gold shadow shadow-white z-30"></div>
+        <div class="bg_gold z-30 h-1 w-full shadow shadow-white"></div>
     </div>
 </template>

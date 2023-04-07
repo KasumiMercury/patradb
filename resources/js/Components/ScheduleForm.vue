@@ -67,7 +67,7 @@ const changeEndTime = () => {
 </script>
 
 <template>
-    <div class="max-w-xl mx-auto mt-10">
+    <div class="mx-auto mt-10 max-w-xl">
         <form @submit.prevent="submit">
             <div>
                 <InputLabel for="title" value="ScheduleTitle" />
@@ -161,7 +161,7 @@ const changeEndTime = () => {
                     />
                 </div>
 
-                <div class="block mt-4">
+                <div class="mt-4 block">
                     <label class="flex items-center">
                         <Checkbox
                             v-model:checked="form.showName"
@@ -175,7 +175,7 @@ const changeEndTime = () => {
             </div>
             {{ form }}
             {{ $page.props.auth.user }}
-            <div class="flex items-center justify-end mt-4">
+            <div class="mt-4 flex items-center justify-end">
                 <PrimaryButton
                     class="ml-4"
                     :class="{ 'opacity-25': form.processing }"

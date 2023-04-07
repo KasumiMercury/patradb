@@ -78,29 +78,24 @@ onUnmounted(() => {
         circle at 70% 90%,
         #fff2f6 10%,
         transparent 60%,
-        #2d2a2d 100%
+        #2d2a2d 95%
     );
 }
-F .cross_wrapper::after {
-    content: "";
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
+.cross_wrapper::after {
     border-radius: 100%;
     background: radial-gradient(
         circle at 50% 50%,
-        transparent 70%,
-        #ffedf3 80%
+        transparent 60%,
+        #fcf5f7 85%
     );
+    pointer-events: none;
 }
 </style>
 <template>
     <div>
         <div class="flex h-fit w-full justify-around">
             <div
-                class="cross_wrapper relative box-content w-1/5 rounded-full p-2"
+                class="cross_wrapper relative box-content w-1/5 rounded-full border-2 border-[#fcf5f7] p-2 after:absolute after:top-0 after:left-0 after:h-full after:w-full after:rounded-full"
             >
                 <CrossButton
                     @top="HigherRange"
@@ -114,7 +109,7 @@ F .cross_wrapper::after {
             <div class="w-1/5">
                 <div class="relative h-full w-full">
                     <div
-                        class="absolute bottom-0 left-0 flex h-4/5 w-1/2 rotate-45 flex-col items-center justify-around rounded-full bg-gradient-to-r from-custom-shadow/50 via-[#ffedf3] to-[#fff2f6]"
+                        class="absolute bottom-0 left-0 flex h-4/5 w-1/2 rotate-45 flex-col items-center justify-around rounded-full border-2 border-[#fcf5f7] bg-gradient-to-r from-custom-shadow/50 via-[#ffedf3] to-[#fff2f6]"
                     >
                         <div
                             class="mx-0 aspect-square h-2/5 -rotate-45 rounded-full"
