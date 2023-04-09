@@ -7,7 +7,7 @@ import MonthlySchedule from "../Components/MonthlySchedule.vue";
 
 const mounted = ref(false);
 
-onMounted(() => mounted.value = true);
+onMounted(() => (mounted.value = true));
 
 defineProps({
     stream: Object,

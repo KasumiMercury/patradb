@@ -4,7 +4,7 @@
     "dev": "vite",
     "build": "vite build && vite build --ssr",
     "lint": "eslint --fix resources/js/**/*.{vue} && eslint --fix resources/js/**/*.{vue}",
-    "format": "prettier --write resources/js/Components/*.vue"
+    "format": "prettier --write resources/js/**/*.vue"
   },
   "devDependencies": {
     "@inertiajs/vue3": "^1.0.0",
@@ -13,7 +13,7 @@
     "@vitejs/plugin-vue": "^4.0.0",
     "@vue/server-renderer": "^3.2.31",
     "autoprefixer": "^10.4.7",
-    "axios": "^1.1.2",
+    "axios": "^1.3.5",
     "eslint": "^8.37.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-vue": "^9.10.0",

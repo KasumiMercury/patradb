@@ -10,13 +10,13 @@ defineProps({
 
 const mounted = ref(false);
 
-onMounted(() => mounted.value = true);
+onMounted(() => (mounted.value = true));
 </script>
 <script>
 import AppLayout from "../Layouts/AppLayout.vue";
 
 export default {
-    layout: AppLayout,
+    layout: (h, page) => h(AppLayout, { testValue: true }, () => page),
 };
 </script>
 <template>

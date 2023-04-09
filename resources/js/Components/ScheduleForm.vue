@@ -173,11 +173,10 @@ const changeEndTime = () => {
                     </label>
                 </div>
             </div>
-            {{ form }}
-            {{ $page.props.auth.user }}
             <div class="mt-4 flex items-center justify-end">
                 <PrimaryButton
                     class="ml-4"
+                    v-if="form.title != '' && form.handleName != ''"
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
                 >

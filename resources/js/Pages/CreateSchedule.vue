@@ -45,7 +45,7 @@ const endTime = {
 
 const mounted = ref(false);
 
-onMounted(() => mounted.value = true);
+onMounted(() => (mounted.value = true));
 </script>
 <script>
 import AppLayout from "../Layouts/AppLayout.vue";
@@ -55,7 +55,7 @@ export default {
 };
 </script>
 <template>
-    <AppLayout>
+    <div>
         <Head>
             <title>CreateSchedule</title>
         </Head>
@@ -63,15 +63,13 @@ export default {
             <p class="text-xs font-semibold text-gray-800">CreateSchedule</p>
         </Teleport>
         <div>
-            <div class="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
-                <div class="">
-                    <ScheduleForm
-                        :initialForm="initialForm"
-                        :initialStart="startTime"
-                        :initialEnd="endTime"
-                    />
-                </div>
+            <div class="mx-auto mb-12 px-4 pt-4 sm:px-6 lg:px-8">
+                <ScheduleForm
+                    :initialForm="initialForm"
+                    :initialStart="startTime"
+                    :initialEnd="endTime"
+                />
             </div>
         </div>
-    </AppLayout>
+    </div>
 </template>

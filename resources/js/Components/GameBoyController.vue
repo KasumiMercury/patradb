@@ -15,6 +15,7 @@ const emits = defineEmits([
     "HigherRange",
     "undoOperate",
     "addTime",
+    "snapToggle",
 ]);
 const brushNext = () => {
     emits("brushNext");
@@ -24,6 +25,9 @@ const brushPrev = () => {
 };
 const focusToggle = () => {
     emits("focusToggle");
+};
+const snapToggle = () => {
+    emits("snapToggle");
 };
 const LowerRange = () => {
     emits("LowerRange");
@@ -177,6 +181,7 @@ onUnmounted(() => {
                         class="flex h-fit w-4/5 -rotate-[30deg] justify-center rounded-full p-1 shadow-inner shadow-custom-shadow"
                     >
                         <button
+                            @click="snapToggle"
                             class="aspect-[4/1] w-full rounded-full bg-gradient-to-b from-[#797179] to-ptr-dark-brown"
                         ></button>
                         <span

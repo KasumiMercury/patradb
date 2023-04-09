@@ -26,9 +26,8 @@ Route::prefix('add')->group(function(){
     Route::get('/',function () {
         return Inertia::render('AddData');
     })->name('adddata');
-    Route::get('player',function () {
-        return Inertia::render('CreatePlayer');
-    })->name('create.player');
+    Route::get('player',[App\Http\Controllers\ViewController::class,'CreatePlayer'])->name('create.player');
+    Route::get('complete',[App\Http\Controllers\ViewController::class,'LaunchComplete'])->name('data.launched');
 });
 
 Route::get('chat',function () {

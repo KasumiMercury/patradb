@@ -6,6 +6,7 @@ import ResponsiveNavLink from "@/Components/ResponsiveNavLink.vue";
 
 const props = defineProps({
     title: String,
+    testValue: Boolean,
 });
 
 /* Get Device Width */
@@ -91,7 +92,7 @@ const headerStyle = ref({
     top: 0;
 }
 .TopNavBar {
-    border-bottom: 5px solid;
+    border-bottom: 0.5rem solid;
     border-image-source: linear-gradient(
         45deg,
         #b67b03 0%,
@@ -101,6 +102,21 @@ const headerStyle = ref({
         #b67b03 90% 100%
     );
     border-image-slice: 1;
+
+    box-shadow: 0px 2px 4px 2px rgba(83, 77, 83, 0.5);
+}
+</style>
+<style scoped>
+.v-enter-active,
+.v-leave-active {
+    transition: opacity 0.4s ease, transform 0.2s ease;
+    transform: translateX(0);
+}
+
+.v-enter-from,
+.v-leave-to {
+    opacity: 0;
+    transform: translateY(-1rem);
 }
 </style>
 <template>
@@ -169,77 +185,79 @@ const headerStyle = ref({
                         </div>
                     </div>
                 </div>
+            </nav>
 
-                <!-- SP Float Menu -->
+            <!-- SP Float Menu -->
+            <div
+                v-if="showingNavigationDropdown"
+                @click="showingNavigationDropdown = false"
+                class="absolute top-0 left-0 z-10 h-full w-full bg-custom-shadow/50"
+            ></div>
+            <transition>
                 <div
-                    :class="{
-                        block: showingNavigationDropdown,
-                        hidden: !showingNavigationDropdown,
-                    }"
-                    class="z-40 bg-ptr-light-pink lg:hidden"
+                    v-if="showingNavigationDropdown"
+                    class="absolute top-24 z-40 w-full bg-ptr-light-pink pt-4 pb-1 lg:hidden"
                 >
                     <!-- Responsive Settings -->
-                    <div class="border-t border-gray-200 pt-4 pb-1">
-                        <div class="flex items-center px-4">
-                            <div
-                                v-if="$page.props.auth.user"
-                                class="my-2 w-full select-none text-center text-xl font-medium text-ptr-dark-pink"
-                            >
-                                {{ $page.props.auth.user.name }}
-                            </div>
-                            <div v-else class="w-full">
-                                <ResponsiveNavLink :href="route('login')">
-                                    Log in
-                                </ResponsiveNavLink>
-                                <ResponsiveNavLink :href="route('register')">
-                                    Register
-                                </ResponsiveNavLink>
-                            </div>
+                    <div class="flex items-center px-4">
+                        <div
+                            v-if="$page.props.auth.user"
+                            class="my-2 w-full select-none text-center text-xl font-medium text-ptr-dark-pink"
+                        >
+                            {{ $page.props.auth.user.name }}
                         </div>
+                        <div v-else class="flex w-full flex-row justify-around">
+                            <ResponsiveNavLink :href="route('register')">
+                                Register
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('login')">
+                                Log in
+                            </ResponsiveNavLink>
+                        </div>
+                    </div>
 
-                        <div class="mt-3">
-                            <ResponsiveNavLink
-                                :href="route('toppage')"
-                                :active="route().current('toppage')"
-                            >
-                                TopPage
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink
-                                :href="route('dataview')"
-                                :active="route().current('dataview')"
-                            >
-                                Data
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink
-                                :href="route('adddata')"
-                                :active="route().current('adddata')"
-                            >
-                                Add Data
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink
-                                :href="route('chatview')"
-                                :active="route().current('chatview')"
-                            >
-                                Chat
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink
-                                :href="route('toolstop')"
-                                :active="route().current('toolstop')"
-                            >
-                                Tools
-                            </ResponsiveNavLink>
-                            <div v-if="$page.props.auth.user" class="mt-4 mb-2">
-                                <!-- Authentication -->
-                                <form method="POST" @submit.prevent="logout">
-                                    <ResponsiveNavLink as="button">
-                                        Log Out
-                                    </ResponsiveNavLink>
-                                </form>
-                            </div>
+                    <div class="mt-3">
+                        <ResponsiveNavLink
+                            :href="route('toppage')"
+                            :active="route().current('toppage')"
+                        >
+                            TopPage
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            :href="route('dataview')"
+                            :active="route().current('dataview')"
+                        >
+                            Data
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            :href="route('adddata')"
+                            :active="route().current('adddata')"
+                        >
+                            Add Data
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            :href="route('chatview')"
+                            :active="route().current('chatview')"
+                        >
+                            Chat
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            :href="route('toolstop')"
+                            :active="route().current('toolstop')"
+                        >
+                            Tools
+                        </ResponsiveNavLink>
+                        <div v-if="$page.props.auth.user" class="mt-4 mb-2">
+                            <!-- Authentication -->
+                            <form method="POST" @submit.prevent="logout">
+                                <ResponsiveNavLink as="button">
+                                    Log Out
+                                </ResponsiveNavLink>
+                            </form>
                         </div>
                     </div>
                 </div>
-            </nav>
+            </transition>
 
             <!-- Main Unit-->
             <div class="relative w-full shrink-0 grow lg:flex lg:flex-row">
@@ -250,11 +268,11 @@ const headerStyle = ref({
                 ></div>
                 <!-- PG SideBar Navigation-->
                 <div
-                    class="relative z-10 ml-0 hidden min-h-full w-0 lg:flex lg:w-fit"
+                    class="relative  ml-0 hidden min-h-full w-0 lg:flex lg:w-fit select-none"
                 >
                     <div
                         v-if="isSideOpen"
-                        class="z-30 hidden min-h-full w-0 overscroll-contain pl-1 lg:absolute lg:flex xl:relative"
+                        class="hidden min-h-full w-0 overscroll-contain pl-1 lg:absolute lg:flex xl:relative select-none"
                         :class="{
                             'mx-0 mr-2 border-r border-ptr-dark-brown bg-ptr-light-pink shadow-md shadow-custom-shadow/80 lg:w-72':
                                 isMaximum,
@@ -262,10 +280,10 @@ const headerStyle = ref({
                         }"
                     >
                         <div
-                            class="customSticky h-fit w-full"
+                            class="customSticky h-fit w-full select-none z-30"
                             :class="{
                                 'pt-0': isMaximum,
-                                'mt-12 pt-12': !isMaximum,
+                                'mt-12': !isMaximum,
                             }"
                         >
                             <div
@@ -488,7 +506,7 @@ const headerStyle = ref({
                                         class="mt-6"
                                     >
                                         <div
-                                            class="mx-4 h-px bg-ptr-dark-pink"
+                                            class="mx-4 mb-2 h-px bg-ptr-dark-pink"
                                         ></div>
                                         <!-- Authentication -->
                                         <form
@@ -572,10 +590,12 @@ const headerStyle = ref({
 
                     <!-- Page Content -->
                     <main class="w-full max-w-full pb-12 lg:pb-0">
+                        <!-- <div class="w-full h-fit" data-slot="youtube-player"></div> -->
                         <slot />
                     </main>
                 </div>
             </div>
         </div>
+        <p>{{ props.testValue }}</p>
     </div>
 </template>

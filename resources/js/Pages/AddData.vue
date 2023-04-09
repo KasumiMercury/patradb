@@ -1,5 +1,5 @@
 <script setup>
-import { Head,Link } from "@inertiajs/vue3";
+import { Head, Link } from "@inertiajs/vue3";
 import { ref, onMounted, onUnmounted } from "vue";
 
 defineProps({
@@ -10,7 +10,7 @@ defineProps({
 
 const mounted = ref(false);
 
-onMounted(() => mounted.value = true);
+onMounted(() => (mounted.value = true));
 </script>
 <script>
 import AppLayout from "../Layouts/AppLayout.vue";

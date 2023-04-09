@@ -1,14 +1,21 @@
 <script setup>
-import { Head, Link } from "@inertiajs/vue3";
-import { ref, computed, onMounted, inject, onUnmounted } from "vue";
+import { Head, Link, usePage, useForm, router } from "@inertiajs/vue3";
+import { ref, computed, onMounted, inject, watch } from "vue";
 import InputLabel from "@/Components/InputLabel.vue";
 import TextInput from "@/Components/TextInput.vue";
-import ResponsiveYoutubeWindow from "@/Components/ResponsiveYoutubeWindow.vue";
+import Checkbox from "@/Components/Checkbox.vue";
+import YouTubeEditwindow from "@/Components/YouTubeEditwindow.vue";
+import YouTubeResponsive from "@/Components/YouTubeResponsive.vue";
 import InteractiveTimeline from "@/Components/InteractiveTimeline.vue";
+import axios from "axios";
 
 const $cookies = inject("$cookies");
 
-const step = ref(1);
+const props = defineProps({
+    videoId: String,
+});
+
+const step = ref(0);
 const inputUrl = ref("");
 const videoId = ref("0kNH45w23aA");
 const videoLength = ref(3600);
@@ -19,20 +26,58 @@ const youtubeWindowRef = ref(null);
 const youtubeComponent = ref();
 
 const isTransfer = ref(false);
+const backedStep = ref(false);
+
+const timeArray = ref([]);
+let sendTimeArray = {};
+
+const form = useForm({
+    videoId: "",
+    title: "",
+    start: null,
+    end: null,
+    middle: "",
+    handleName: "",
+    public: true,
+    showName: true,
+});
+
+if (usePage().props.auth.user !== null) {
+    form.handleName = usePage().props.auth.user.name;
+    if (usePage().props.auth.user.role == "admin") {
+        form.showName = false;
+    }
+}
+
+if (props.videoId) {
+    videoId.value = props.videoId;
+    // console.log(props.videoId)
+}
 
 onMounted(() => {
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-                isFloatWindow.value = false;
-            } else {
-                isFloatWindow.value = true;
-            }
-        });
-    });
-    observer.observe(youtubeWindowRef.value);
     mounted.value = true;
+    if (props.videoId) {
+        timelineStep();
+    }
 });
+
+const timelineStep = () => {
+    if (videoId.value != "") {
+        step.value = 1;
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    isFloatWindow.value = false;
+                } else {
+                    isFloatWindow.value = true;
+                }
+            });
+        });
+        observer.observe(youtubeWindowRef.value);
+        $cookies.set("playerParent", { videoId: videoId.value });
+        isTransfer.value = false;
+    }
+};
 
 const existCookies = () => {
     let cookiesIsExist = $cookies.isKey("playerParent");
@@ -43,13 +88,20 @@ const loadCookies = () => {
     videoId.value = temp["videoId"];
     isTransfer.value = true;
     step.value = 1;
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                isFloatWindow.value = false;
+            } else {
+                isFloatWindow.value = true;
+            }
+        });
+    });
+    observer.observe(youtubeWindowRef.value);
 };
 
-const nextStep = () => {
-    step.value++;
-};
 const prevStep = () => {
-    isTransfer.value = false;
+    backedStep.value = true;
     step.value--;
 };
 
@@ -97,10 +149,7 @@ const getVideoId = () => {
             }
         }
     }
-    if (videoId.value != "") {
-        nextStep();
-    }
-    $cookies.set("playerParent", { videoId: videoId.value });
+    timelineStep();
 };
 
 const inputUrlError = computed(() => {
@@ -114,19 +163,11 @@ const inputUrlError = computed(() => {
     }
 });
 
-const convertTime = (input) => {
-    let hour = Math.floor(input / 3600);
-    let min = Math.floor((input % 3600) / 60);
-    let sec = input % 60;
-    return hour + ":" + min + ":" + sec;
-};
-
 const setVideoLength = (length) => {
     videoLength.value = length;
 };
 
 const setCurrentTime = (time) => {
-    //console.log(time);
     currentTime.value = time;
 };
 
@@ -148,8 +189,46 @@ const timelinePlayAt = (time) => {
 };
 
 const mounted = ref(false);
-</script>
 
+const launchStep = (data) => {
+    timeArray.value = data;
+    step.value = 2;
+};
+
+const submit = () => {
+    form.videoId = videoId.value;
+    form.start = sendTimeArray["start"];
+    form.end = sendTimeArray["end"];
+    form.middle = sendTimeArray["middle"];
+    form.post(route("post.player"), {
+        onFinish: () => {
+            $cookies.remove("playerParent");
+            $cookies.remove("playerTimeArray");
+        },
+    });
+};
+
+watch(
+    () => timeArray.value,
+    (val) => {
+        sendTimeArray["start"] = val[0];
+        sendTimeArray["end"] = val[val.length - 1];
+        if (val.length > 3) {
+            let tempArray = val.slice(1, -1);
+            sendTimeArray["middle"] = tempArray.join(",");
+        } else {
+            sendTimeArray["middle"] = "";
+        }
+    }
+);
+</script>
+<script>
+import AppLayout from "../Layouts/AppLayout.vue";
+
+export default {
+    layout: AppLayout,
+};
+</script>
 <style scoped>
 .v-enter-active,
 .v-leave-active {
@@ -175,14 +254,27 @@ const mounted = ref(false);
     height: 100% !important;
     margin: 0;
 }
+.launchButton {
+    /* bacground radial gradiation dark pink to light pink */
+    background: radial-gradient(circle at 50% 50%, #d8346e 0%, #c20063 80%);
+    position: relative;
+}
+.launchButton::after {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    content: "";
+    top: 0;
+    left: 0;
+    border-radius: 9999px;
+    /* radial shine effect */
+    background: radial-gradient(
+        circle at 30% 30%,
+        rgba(255, 255, 255, 0.4) 0%,
+        rgba(255, 255, 255, 0) 50%
+    );
+}
 </style>
-<script>
-import AppLayout from "../Layouts/AppLayout.vue";
-
-export default {
-    layout: AppLayout,
-};
-</script>
 <template>
     <Head>
         <title>CreatePlayer</title>
@@ -221,8 +313,8 @@ export default {
                     class="relative mx-auto w-full max-w-5xl px-6"
                     ref="youtubeWindowRef"
                 >
-                    <div class="aspect-video w-full" v-if="step >= 1">
-                        <ResponsiveYoutubeWindow
+                    <div class="aspect-video w-full" v-if="step == 1">
+                        <YouTubeEditwindow
                             ref="youtubeComponent"
                             :videoId="videoId"
                             :isFloatWindow="isFloatWindow"
@@ -437,7 +529,7 @@ export default {
                                     </button>
                                 </div>
                             </template>
-                        </ResponsiveYoutubeWindow>
+                        </YouTubeEditwindow>
                     </div>
                 </div>
                 <div v-if="step == 0" class="mx-auto mt-12 max-w-7xl px-6">
@@ -501,13 +593,171 @@ export default {
                         </div>
                     </transition>
                 </div>
-                <div v-if="step == 1" class="mb-12 mt-0 min-h-screen w-full">
-                    <InteractiveTimeline
-                        :isTransfer="isTransfer"
-                        :videoLength="videoLength"
-                        :currentTime="currentTime"
-                        @playAt="timelinePlayAt"
-                    ></InteractiveTimeline>
+                <div v-if="step == 1">
+                    <div class="mb-12 mt-0 min-h-screen w-full">
+                        <InteractiveTimeline
+                            :isTransfer="isTransfer"
+                            :videoLength="videoLength"
+                            :currentTime="currentTime"
+                            :backedStep="backedStep"
+                            @playAt="timelinePlayAt"
+                            @launch="launchStep"
+                        ></InteractiveTimeline>
+                    </div>
+                </div>
+                <div v-if="step == 2">
+                    <YouTubeResponsive
+                        ref="youtubeComponent"
+                        :timeArray="timeArray"
+                        :videoId="videoId"
+                    >
+                        <template v-slot:activator="{ play, pause, ytStatus }">
+                            <div class="flex justify-around pb-1">
+                                <button
+                                    v-if="ytStatus"
+                                    v-on:click="pause(pause)"
+                                    class="text-sm text-gray-900 lg:text-base"
+                                >
+                                    <svg
+                                        class="h-6 w-6 fill-white lg:h-10 lg:w-10"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 320 512"
+                                    >
+                                        <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                                        <path
+                                            d="M48 64C21.5 64 0 85.5 0 112V400c0 26.5 21.5 48 48 48H80c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H48zm192 0c-26.5 0-48 21.5-48 48V400c0 26.5 21.5 48 48 48h32c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H240z"
+                                        />
+                                    </svg>
+                                </button>
+                                <button
+                                    v-else
+                                    v-on:click="play(play)"
+                                    class="text-sm text-gray-900 lg:text-base"
+                                >
+                                    <svg
+                                        class="h-6 w-6 fill-white lg:h-10 lg:w-10"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 384 512"
+                                    >
+                                        <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                                        <path
+                                            d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"
+                                        />
+                                    </svg>
+                                </button>
+                            </div>
+                        </template>
+                    </YouTubeResponsive>
+                    <form @submit.prevent="submit">
+                        <div class="mx-auto w-full pb-64 px-6">
+                            <div class="my-16 block">
+                                <div class="mx-auto mt-4 max-w-7xl">
+                                    <InputLabel
+                                        for="handleName"
+                                        value="Data Title"
+                                    />
+                                    <TextInput
+                                        id="handleName"
+                                        v-model="form.title"
+                                        type="text"
+                                        class="mt-1 block w-full"
+                                        required
+                                        autofocus
+                                    />
+                                </div>
+                                <div
+                                    class="mx-auto mt-12 max-w-xl"
+                                    v-if="!$page.props.auth.user"
+                                >
+                                    <InputLabel
+                                        for="handleName"
+                                        value="Handle Name"
+                                    />
+                                    <TextInput
+                                        id="handleName"
+                                        v-model="form.handleName"
+                                        type="text"
+                                        class="mt-1 block w-full"
+                                        required
+                                    />
+                                </div>
+
+                                <div class="mx-auto mt-12 w-fit">
+                                    <label class="flex items-center">
+                                        <Checkbox
+                                            v-model:checked="form.public"
+                                            name="public"
+                                        />
+                                        <span class="ml-2 text-sm text-gray-600"
+                                            >このデータを公開設定にしますか？</span
+                                        >
+                                    </label>
+                                </div>
+
+                                <div
+                                    class="mx-auto mt-12 w-fit"
+                                    v-if="form.public"
+                                >
+                                    <label class="flex items-center">
+                                        <Checkbox
+                                            v-model:checked="form.showName"
+                                            name="showName"
+                                        />
+                                        <span class="ml-2 text-sm text-gray-600"
+                                            >あなたのハンドルネームを登録者として表示しますか？</span
+                                        >
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="animate-bounce">
+                                <p
+                                    v-if="form.title == ''"
+                                    class="text-center text-red-600"
+                                >
+                                    データのタイトルを設定してください。
+                                </p>
+
+                                <p
+                                    v-if="form.handleName == ''"
+                                    class="text-center text-red-600"
+                                >
+                                    ハンドルネームを入力してください。（データ操作時に必要です。）
+                                </p>
+                            </div>
+                            <transition>
+                                <div
+                                    class="mx-auto mt-12 w-fit"
+                                    :class="{ 'opacity-25': form.processing }"
+                                    :disabled="form.processing"
+                                    v-if="
+                                        form.title != '' &&
+                                        form.handleName != ''
+                                    "
+                                >
+                                    <button
+                                        type="submit"
+                                        class="launchButton mx-auto flex aspect-square w-fit flex-col items-center justify-center whitespace-nowrap rounded-full py-1 px-3 font-Abril text-xl text-white shadow-md shadow-[#550341] lg:py-2 lg:px-6 lg:text-3xl"
+                                    >
+                                        Launch
+                                        <svg
+                                            fill="none"
+                                            stroke="currentColor"
+                                            class="h-8 w-8 animate-pulse stroke-white lg:h-10 lg:w-10"
+                                            stroke-width="1.5"
+                                            viewBox="0 0 24 24"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.119-8.54a6 6 0 00-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 00-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 01-2.448-2.448 14.9 14.9 0 01.06-.312m-2.24 2.39a4.493 4.493 0 00-1.757 4.306 4.493 4.493 0 004.306-1.758M16.5 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"
+                                            ></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </transition>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

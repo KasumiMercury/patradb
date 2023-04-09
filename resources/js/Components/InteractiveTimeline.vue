@@ -6,7 +6,7 @@ import pkg from "lodash";
 import { onMounted, onUnmounted, ref, watch, inject } from "vue";
 import FamiController from "./FamiController.vue";
 import GameBoyController from "./GameBoyController.vue";
-const { debounce, chunk, sortedIndexBy } = pkg;
+const { debounce, chunk, sortedIndexBy, sortedIndex } = pkg;
 const $cookies = inject("$cookies");
 
 const isServer = typeof window === "undefined";
@@ -14,8 +14,9 @@ const props = defineProps({
     videoLength: Number,
     currentTime: Number,
     isTransfer: Boolean,
+    backedStep: Boolean,
 });
-const emits = defineEmits(["playAt"]);
+const emits = defineEmits(["playAt", "launch"]);
 const timelineWrapper = ref();
 const controllerWrapper = ref();
 
@@ -65,6 +66,7 @@ let selectData = null;
 const snap = ref(true);
 const focus = ref(false);
 const errorExist = ref(false);
+const mouseTime = ref(100);
 //
 let brushRange = [0, 3600];
 let brushRangeLength = 3600;
@@ -271,6 +273,37 @@ onMounted(() => {
     // timeGroup Select
     timeMainGroup = mainGroup.append("g").attr("class", "time main group");
     histry[0] = [];
+
+    if (props.backedStep) {
+        setAxis();
+        updateAxisZoom();
+        updateAxisMain();
+
+        let length = Math.floor(props.videoLength / 300);
+        for (let i = 0; i < length; i++) {
+            timeVal5.push(300 * i);
+        }
+        if (props.videoLength % 300 > 150 || props.videoLength % 300 == 0) {
+            timeVal5.push(300 * length);
+        }
+        timeVal5.push(props.videoLength);
+
+        brushG.call(brush.move, [0, xScaleZoom(3630)]);
+
+        if (props.isTransfer && $cookies.isKey("playerTimeArray")) {
+            let temp = $cookies.get("playerTimeArray");
+            timeSet.value = temp;
+            histry.push([...timeSet.value]);
+            histryIndex++;
+            for (let i = 0; i < timeSet.value.length; i++) {
+                menuSet.value.push(false);
+            }
+            updateTimeArray();
+            generateColScale();
+            updateTimeZoomDisplay();
+            updateTimeMainDisplay();
+        }
+    }
 });
 // konami command
 const onKeyDown = (e) => {
@@ -610,13 +643,54 @@ const mouseEvent = (event) => {
     let mouse = d3.pointer(event);
     let time = Math.floor(xScaleMain2.invert(mouse[0]));
     if (event.type == "mousemove") {
-        mouseAxis.attr("transform", "translate(" + xScaleMain2(time) + ",0)");
-        mouseAxis.select("#tip").text(convertTime(time));
+        mouseTime.value = time;
+        if (isPlayer) {
+            let idx = sortedIndex(timeSet.value, time);
+            if (snap.value) {
+                if (timeSet.value[idx] === time) {
+                    mouseTime.value = time;
+                } else {
+                    let lowerIdx = Math.max(0, idx - 1);
+                    let upperIdx = Math.min(timeSet.value.length - 1, idx);
+                    let lowerDiff = Math.abs(time - timeSet.value[lowerIdx]);
+                    let upperDiff = Math.abs(time - timeSet.value[upperIdx]);
+
+                    if (lowerDiff <= snapValue && lowerDiff <= upperDiff) {
+                        mouseTime.value = timeSet.value[lowerIdx];
+                    } else if (upperDiff <= snapValue) {
+                        mouseTime.value = timeSet.value[upperIdx];
+                    }
+                }
+            }
+            mouseAxis.attr(
+                "transform",
+                "translate(" + xScaleMain2(mouseTime.value) + ",0)"
+            );
+            mouseAxis.select("#tip").text(convertTime(mouseTime.value));
+        } else {
+            if (snap.value) {
+                let tempTime = mouseTime.value;
+                mouseTime.value = Math.floor(tempTime / snapValue) * snapValue;
+            }
+            mouseAxis.attr(
+                "transform",
+                "translate(" + xScaleMain2(mouseTime.value) + ",0)"
+            );
+            mouseAxis.select("#tip").text(convertTime(mouseTime.value));
+        }
     } else {
         if (isPlayer) {
-            clickPlay(time);
+            if (snap) {
+                clickPlay(mouseTime.value);
+            } else {
+                clickPlay(time);
+            }
         } else {
-            addTime(time);
+            if (snap) {
+                addTime(mouseTime.value);
+            } else {
+                addTime(time);
+            }
         }
     }
 };
@@ -635,6 +709,8 @@ const addTime = (time) => {
         menuSet.value.push(false);
     }
 };
+
+// update Display
 const updateTimeZoomDisplay = () => {
     let tempZoom = timeZoomGroup.selectAll("rect").data(timeSetArray.value);
     tempZoom.exit().remove();
@@ -1004,6 +1080,9 @@ watch(
             timeSet.value = temp;
             histry.push([...timeSet.value]);
             histryIndex++;
+            for (let i = 0; i < timeSet.value.length; i++) {
+                menuSet.value.push(false);
+            }
             updateTimeArray();
             generateColScale();
             updateTimeZoomDisplay();
@@ -1017,6 +1096,25 @@ watch(
         updateProgress();
     }
 );
+// watch(
+//     ()=>props.isTransfer,
+//     () =>{
+
+// if (props.isTransfer && $cookies.isKey("playerTimeArray")) {
+//     let temp = $cookies.get("playerTimeArray");
+//     timeSet.value = temp;
+//     histry.push([...timeSet.value]);
+//     histryIndex++;
+//     for(let i = 0; i < timeSet.value.length; i++){
+//         menuSet.value.push(false)
+//     }
+//     updateTimeArray();
+//     generateColScale();
+//     updateTimeZoomDisplay();
+//     updateTimeMainDisplay();
+// }
+//     }
+// )
 
 const changeTime = () => {
     updateTimeArray();
@@ -1088,6 +1186,13 @@ const removeTime = (index) => {
     menuSet.value.splice(index, 1);
     changeTime();
 };
+const launch = () => {
+    if (errorExist.value) {
+        timeSet.value.push(props.videoLength);
+    }
+    console.log(timeSet.value);
+    emits("launch", timeSet.value);
+};
 onUnmounted(() => {
     if (!isServer) {
         window.removeEventListener("resize", changeWidth);
@@ -1127,6 +1232,7 @@ svg {
                 @brushNext="brushNext"
                 @brushPrev="brushPrev"
                 @focusToggle="focusToggle"
+                @snapToggle="snap = !snap"
                 @LowerRange="findNearLowRange"
                 @HigherRange="findNearHighRange"
                 @undoOperate="undoOperate"
@@ -1139,6 +1245,7 @@ svg {
                 @brushNext="brushNext"
                 @brushPrev="brushPrev"
                 @focusToggle="focusToggle"
+                @snapToggle="snap = !snap"
                 @LowerRange="findNearLowRange"
                 @HigherRange="findNearHighRange"
                 @undoOperate="undoOperate"
@@ -1196,17 +1303,17 @@ svg {
         <div
             class="mx-auto mt-16 mb-96 flex w-fit max-w-7xl flex-col px-8 pb-24 text-center lg:mt-24"
         >
-            <p
-                v-if="timeSet.length > 1 && errorExist"
-                class="mb-3 mt-6 text-right text-red-600"
-            >
-                登録タイムがひとつのみのブロックがあります。当該ブロックはデータ登録時無視されます。
+            <p v-if="errorExist" class="mb-3 mt-6 text-center text-red-600">
+                登録タイムがひとつのみのブロックがあります。<br />当該ブロックの範囲後尾は、親となる動画の終了時刻（{{
+                    convertTime(props.videoLength)
+                }}）に自動で変換されます。
             </p>
             <button
-                v-if="timeSet.length > 1"
+                @click="launch"
+                v-if="timeSet.length > 0"
                 class="mx-auto flex w-fit items-center whitespace-nowrap rounded-lg bg-ptr-dark-pink py-1 px-3 text-xl text-white shadow-sm shadow-[#550341] lg:py-2 lg:px-6 lg:text-3xl"
             >
-                Data Launch
+                Launcher Step
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 256 512"

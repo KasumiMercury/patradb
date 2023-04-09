@@ -77,8 +77,8 @@ defineExpose({
         <div
             class="bg-zinc-800"
             :class="{
-                'h-full w-full': !isFloatWindow,
-                'aspect-video w-64 md:w-96 ': isFloatWindow,
+                'h-full w-full rounded-t-md p-3 lg:rounded-md': !isFloatWindow,
+                'aspect-video w-64 md:w-96': isFloatWindow,
             }"
         >
             <YouTube
@@ -102,7 +102,7 @@ defineExpose({
     </div>
     <div
         v-if="!isFloatWindow"
-        class="mx-auto w-full max-w-xl bg-zinc-800 px-4 py-1"
+        class="mx-auto w-full max-w-xl rounded-b-xl bg-zinc-800 px-4 py-1"
     >
         <slot
             name="activator"

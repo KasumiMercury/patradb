@@ -15,6 +15,7 @@ const emits = defineEmits([
     "HigherRange",
     "undoOperate",
     "addTime",
+    "snapToggle",
 ]);
 const brushNext = () => {
     emits("brushNext");
@@ -24,6 +25,9 @@ const brushPrev = () => {
 };
 const focusToggle = () => {
     emits("focusToggle");
+};
+const snapToggle = () => {
+    emits("snapToggle");
 };
 const LowerRange = () => {
     emits("LowerRange");
@@ -275,6 +279,7 @@ onUnmounted(() => {
                                     class="rounded_ellipse_wrap relative rounded-full border-4 border-[#75003b] bg-[#75003b] after:absolute after:top-0 after:left-0 after:z-[-2] after:-translate-y-[4px] after:-translate-x-1/2 after:border-[#75003b] after:bg-[#75003b]"
                                 >
                                     <button
+                                        @click="snapToggle"
                                         class="round_ellipse_button z-40 h-full w-full rounded-full text-[#e1dcd8] shadow-sm shadow-gray-900"
                                     >
                                         <span

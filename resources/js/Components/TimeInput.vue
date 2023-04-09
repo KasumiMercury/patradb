@@ -59,7 +59,6 @@ const remove = () => {
 };
 defineExpose({ focus: () => input.value.focus() });
 </script>
-
 <template>
     <div class="flex w-full flex-col border-0 bg-transparent">
         <div class="flex w-full flex-row border-0 bg-transparent">

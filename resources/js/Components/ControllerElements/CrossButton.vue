@@ -137,7 +137,7 @@ onUnmounted(() => {
         >
             <button
                 data-hotkey="ArrowDown"
-                class="relative box-content flex aspect-square h-full w-full m-0 items-center justify-center rounded-b-md border-r-2 border-gray-200 bg-gradient-to-l from-[#515151] via-[#2d2a2d] to-[#1d1d1d] after:absolute after:top-0 after:left-0 after:h-2 after:w-full after:-translate-y-1/2 after:bg-gradient-to-l after:from-[#515151] after:via-[#2d2a2d] after:to-[#1d1d1d]"
+                class="relative m-0 box-content flex aspect-square h-full w-full items-center justify-center rounded-b-md border-r-2 border-gray-200 bg-gradient-to-l from-[#515151] via-[#2d2a2d] to-[#1d1d1d] after:absolute after:top-0 after:left-0 after:h-2 after:w-full after:-translate-y-1/2 after:bg-gradient-to-l after:from-[#515151] after:via-[#2d2a2d] after:to-[#1d1d1d]"
                 @click="bottom"
             >
                 <svg

@@ -31,7 +31,7 @@ class ViewController extends Controller
         $otherSchedule = DB::table('schedules')->Where('start_date','>',$monthDay)->orderBy('end_date')
                             ->where('type_id',null)
                             ->get();
-                            
+
         return Inertia::render('TopPage', [
             'stream' => $todayStream,
             'today' => $todaySchedule,
@@ -41,9 +41,21 @@ class ViewController extends Controller
     }
     public function CreateSchedule(){
         $deepl_key = config('services.deepl.key');
-        
+
         return Inertia::render('CreateSchedule', [
             'deepl_key' => $deepl_key,
+        ]);
+    }
+    public function CreatePlayer(Request $request){
+        $videoId = $request->id;
+        return Inertia::render('CreatePlayer', [
+            'videoId' => $videoId,
+        ]);
+    }
+    public function LaunchComplete(Request $request){
+        $videoId = $request->id;
+        return Inertia::render('DataLaunched', [
+            'videoId' => $videoId,
         ]);
     }
 }

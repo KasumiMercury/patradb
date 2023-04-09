@@ -10,8 +10,7 @@ defineProps({
 
 const mounted = ref(false);
 
-onMounted(() => mounted.value = true);
-
+onMounted(() => (mounted.value = true));
 </script>
 <script>
 import AppLayout from "../Layouts/AppLayout.vue";

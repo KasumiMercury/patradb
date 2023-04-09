@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use PhpParser\Node\Expr\Cast\Object_;
 use DeepL\Translator;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class DataController extends Controller
 {
@@ -21,7 +22,7 @@ class DataController extends Controller
         $send["creater_show"] = $temp["showName"];
 
         /*translate method*/
-        $authKey = config('services.deepl.key'); 
+        $authKey = config('services.deepl.key');
         $translator = new Translator($authKey);
         $result = $translator->translateText($temp["title"], null, 'en-US');
 
@@ -30,10 +31,14 @@ class DataController extends Controller
         /*auto insert timestamp*/
         $send["created_at"] = date('Y-m-d H:i:s');
         $send["updated_at"] = date('Y-m-d H:i:s');
-        
+
         /*insert*/
         DB::table('schedules')->insert($send);
 
         return redirect()->route('toppage');
+    }
+    public function PostPlayer(Request $request){
+        $temp = $request->all();
+        return redirect()->route('data.launched',['id' => $temp["videoId"]]);
     }
 }
