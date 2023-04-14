@@ -21,7 +21,6 @@ const form = useForm({
     startDate: props.initialForm.startDate,
     endDate: props.initialForm.endDate,
     eventCode: props.initialForm.eventCode,
-    type: props.initialForm.type,
     handleName: props.initialForm.handleName,
     showName: props.initialForm.showName,
 });

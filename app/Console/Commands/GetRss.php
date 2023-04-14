@@ -34,7 +34,7 @@ class GetRss extends Command
         $xml = simplexml_load_file($feed);
         $obj = get_object_vars($xml);
         $obj_entry = $obj["entry"];
-                
+
         for($k = 0; $k < count($obj_entry); $k++){
             $temp = $obj_entry[$k];
             $tempArray = json_decode(json_encode($temp), true);
@@ -46,6 +46,7 @@ class GetRss extends Command
             $sendArray["creater_show"] = false;
             $sendArray["created_at"] = date('Y-m-d H:i:s');
             $sendArray["updated_at"] = date('Y-m-d H:i:s');
+            $sendArray["free_title"] = $tempArray["title"];
 
             if (false !== strpos($tempArray["title"], 'メンバー')) {
                 $sendArray["member"] = true;
@@ -64,6 +65,7 @@ class GetRss extends Command
                 DB::table('videos')->where('video_id',$sendArray["video_id"])
                                     ->update([
                                         'title'=>$sendArray["title"],
+                                        'free_title'=>$sendArray["title"],
                                         'updated_at'=>$sendArray["updated_at"]
                                     ]);
                 $existNew = true;

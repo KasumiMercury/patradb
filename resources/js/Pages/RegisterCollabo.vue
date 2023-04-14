@@ -1,43 +1,33 @@
 <script setup>
-import { Head, Link, usePage, useForm, router } from "@inertiajs/vue3";
-import { ref, computed, onMounted, inject, watch } from "vue";
+import { ref, onMounted, computed, onUnmounted } from "vue";
+import { Head, Link, useForm, usePage, router } from "@inertiajs/vue3";
 import InputLabel from "@/Components/InputLabel.vue";
 import TextInput from "@/Components/TextInput.vue";
 import Checkbox from "@/Components/Checkbox.vue";
 import YouTubeEditwindow from "@/Components/YouTubeEditwindow.vue";
-import YouTubeResponsive from "@/Components/YouTubeResponsive.vue";
-import InteractiveTimeline from "@/Components/InteractiveTimeline.vue";
+import axios from "axios";
 
-const $cookies = inject("$cookies");
-
-const props = defineProps({
-    videoId: String,
-});
-
+const mounted = ref(false);
 const step = ref(0);
 const inputUrl = ref("");
 const videoId = ref("0kNH45w23aA");
-const videoLength = ref(3600);
-const currentTime = ref(20);
-
-const isFloatWindow = ref(false);
 const youtubeWindowRef = ref(null);
 const youtubeComponent = ref();
-
-const isTransfer = ref(false);
-const backedStep = ref(false);
+const videoLength = ref(0);
+const currentTime = ref(0);
 
 const timeArray = ref([]);
-let sendTimeArray = {};
+const showConfirm = ref(false);
+const showRegisterRange = ref(false);
+let routeTopTimer = null;
+let timer = null;
+const timerValue = ref(10);
 
 const form = useForm({
     videoId: "",
-    title: "",
     start: null,
-    end: null,
-    middle: "",
+    end: 10,
     handleName: "",
-    public: true,
     showName: true,
 });
 
@@ -48,70 +38,23 @@ if (usePage().props.auth.user !== null) {
     }
 }
 
-if (props.videoId) {
-    videoId.value = props.videoId;
-    // console.log(props.videoId)
-}
-
-onMounted(() => {
-    mounted.value = true;
-    if (props.videoId) {
-        timelineStep();
-    }
-});
-
-const timelineStep = () => {
-    if (videoId.value != "") {
-        step.value = 1;
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach((entry) => {
-                if (entry.isIntersecting) {
-                    isFloatWindow.value = false;
-                } else {
-                    isFloatWindow.value = true;
-                }
-            });
-        });
-        observer.observe(youtubeWindowRef.value);
-        $cookies.set("playerParent", { videoId: videoId.value });
-        isTransfer.value = false;
-    }
+const playAt = (time) => {
+    let youtube = youtubeComponent.value;
+    youtube.playAt(time);
+    currentTime.value = time;
 };
 
+onMounted(() => (mounted.value = true));
+
 const existCookies = () => {
-    let cookiesIsExist = $cookies.isKey("playerParent");
+    let cookiesIsExist = $cookies.isKey("collaboParent");
     return cookiesIsExist;
 };
 const loadCookies = () => {
-    let temp = $cookies.get("playerParent");
+    let temp = $cookies.get("collaboParent");
     videoId.value = temp["videoId"];
-    isTransfer.value = true;
     step.value = 1;
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-                isFloatWindow.value = false;
-            } else {
-                isFloatWindow.value = true;
-            }
-        });
-    });
-    observer.observe(youtubeWindowRef.value);
 };
-
-const prevStep = () => {
-    backedStep.value = true;
-    step.value--;
-};
-
-const getClipBoard = () => {
-    if (navigator.clipboard) {
-        navigator.clipboard.readText().then(function (text) {
-            inputUrl.value = text;
-        });
-    }
-};
-
 const getVideoId = () => {
     const ytUrl = inputUrl.value;
     let isShort = ytUrl.indexOf("watch");
@@ -148,7 +91,15 @@ const getVideoId = () => {
             }
         }
     }
-    timelineStep();
+    checkExist();
+};
+
+const getClipBoard = () => {
+    if (navigator.clipboard) {
+        navigator.clipboard.readText().then(function (text) {
+            inputUrl.value = text;
+        });
+    }
 };
 
 const inputUrlError = computed(() => {
@@ -162,6 +113,36 @@ const inputUrlError = computed(() => {
     }
 });
 
+const timeRegisterStep = () => {
+    step.value = 1;
+    $cookies.set("playerParent", { videoId: videoId.value });
+};
+
+const checkExist = () => {
+    console.log(videoId.value);
+    if (videoId.value != "") {
+        form.videoId = videoId.value;
+        axios
+            .get(route("check.collabo", { videoId: videoId.value }))
+            .then((res) => {
+                console.log(res);
+                if (res.data.isExist) {
+                    console.log("exist");
+                    step.value = 2;
+                    timerValue.value = 10;
+                    routeTopTimer = setTimeout(() => {
+                        router.visit(route("toppage"));
+                    }, 10000);
+                    timer = setInterval(() => {
+                        timerValue.value--;
+                    }, 1000);
+                } else {
+                    timeRegisterStep();
+                }
+            });
+    }
+};
+
 const setVideoLength = (length) => {
     videoLength.value = length;
 };
@@ -170,56 +151,56 @@ const setCurrentTime = (time) => {
     currentTime.value = time;
 };
 
-const seekDif = (seek, diff) => {
-    return seek(diff);
+const registerWhole = () => {
+    form.start = null;
+    form.end = null;
+    showRegisterRange.value = false;
+    showConfirm.value = true;
 };
 
-const play = (play) => {
-    return play();
-};
-const pause = (pause) => {
-    return pause();
-};
-
-const timelinePlayAt = (time) => {
-    let youtube = youtubeComponent.value;
-    youtube.playAt(time);
-    currentTime.value = time;
+const registerPart = () => {
+    form.end = 10;
+    showConfirm.value = false;
+    showRegisterRange.value = true;
 };
 
-const mounted = ref(false);
-
-const launchStep = (data) => {
-    timeArray.value = data;
-    step.value = 2;
+const encodeTime = (input) => {
+    let hour = ("0" + Math.floor(input / 3600)).slice(-2);
+    let min = ("0" + Math.floor((input % 3600) / 60)).slice(-2);
+    let sec = ("0" + (input % 60)).slice(-2);
+    return hour + ":" + min + ":" + sec;
 };
 
-const submit = () => {
-    form.videoId = videoId.value;
-    form.start = sendTimeArray["start"];
-    form.end = sendTimeArray["end"];
-    form.middle = sendTimeArray["middle"];
-    form.post(route("post.player"), {
+const decodeTime = (input) => {
+    let inputArray = input.split(":");
+    return (
+        Number(inputArray[0]) * 3600 +
+        Number(inputArray[1]) * 60 +
+        Number(inputArray[2])
+    );
+};
+const registerVideo = () => {
+    console.log(form);
+    form.post(route("post.collabo"), {
         onFinish: () => {
-            $cookies.remove("playerParent");
-            $cookies.remove("playerTimeArray");
+            $cookies.remove("collaboParent");
         },
     });
 };
+const prevStep = () => {
+    step.value--;
+};
+onUnmounted(() => {
+    console.log("clear");
+    clearTimeout(routeTopTimer);
+    clearInterval(timer);
+});
 
-watch(
-    () => timeArray.value,
-    (val) => {
-        sendTimeArray["start"] = val[0];
-        sendTimeArray["end"] = val[val.length - 1];
-        if (val.length > 3) {
-            let tempArray = val.slice(1, -1);
-            sendTimeArray["middle"] = tempArray.join(",");
-        } else {
-            sendTimeArray["middle"] = "";
-        }
-    }
-);
+const otherRegister = () => {
+    step.value = 0;
+    clearTimeout(routeTopTimer);
+    clearInterval(timer);
+};
 </script>
 <script>
 import AppLayout from "../Layouts/AppLayout.vue";
@@ -228,19 +209,6 @@ export default {
     layout: AppLayout,
 };
 </script>
-<style scoped>
-.v-enter-active,
-.v-leave-active {
-    transition: opacity 0.5s ease, transform 0.5s ease;
-    transform: translateX(0);
-}
-
-.v-enter-from,
-.v-leave-to {
-    opacity: 0;
-    transform: translateX(-1rem);
-}
-</style>
 <style>
 .videoWindow {
     width: 100% !important;
@@ -253,42 +221,22 @@ export default {
     height: 100% !important;
     margin: 0;
 }
-.launchButton {
-    /* bacground radial gradiation dark pink to light pink */
-    background: radial-gradient(circle at 50% 50%, #d8346e 0%, #c20063 80%);
-    position: relative;
-}
-.launchButton::after {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    content: "";
-    top: 0;
-    left: 0;
-    border-radius: 9999px;
-    /* radial shine effect */
-    background: radial-gradient(
-        circle at 30% 30%,
-        rgba(255, 255, 255, 0.4) 0%,
-        rgba(255, 255, 255, 0) 50%
-    );
-}
 </style>
 <template>
     <Head>
-        <title>CreatePlayer</title>
+        <title>RegisterCollabo</title>
     </Head>
     <Teleport to='[data-slot="header"]' v-if="mounted">
         <p class="text-xs font-semibold text-gray-800">
             <Link :href="route('adddata')" class="underline">AddData</Link> /
-            CreatePlayer
+            RegisterCollabo
         </p>
     </Teleport>
     <div>
         <div class="w-full">
             <div class="mx-auto w-full pt-4">
                 <div
-                    v-if="step != 0"
+                    v-if="step != 0 && step != 2"
                     class="mx-auto mb-3 flex max-w-7xl items-start px-8 lg:mb-6"
                 >
                     <button
@@ -316,7 +264,7 @@ export default {
                         <YouTubeEditwindow
                             ref="youtubeComponent"
                             :videoId="videoId"
-                            :isFloatWindow="isFloatWindow"
+                            :isFloatWindow="false"
                             @currentTimeUpdate="setCurrentTime"
                             @getVideoLength="setVideoLength"
                         >
@@ -592,51 +540,112 @@ export default {
                         </div>
                     </transition>
                 </div>
-                <div v-if="step == 1">
-                    <div class="mb-12 mt-0 min-h-screen w-full">
-                        <InteractiveTimeline
-                            :isTransfer="isTransfer"
-                            :videoLength="videoLength"
-                            :currentTime="currentTime"
-                            :backedStep="backedStep"
-                            @playAt="timelinePlayAt"
-                            @launch="launchStep"
-                        ></InteractiveTimeline>
+                <div v-if="step == 1" class="pt-6">
+                    <div v-if="showConfirm">
+                        <div class="mx-auto mt-20 max-w-xl">
+                            <div v-if="!$page.props.auth.user">
+                                <InputLabel
+                                    for="handleName"
+                                    value="Handle Name"
+                                />
+                                <TextInput
+                                    id="handleName"
+                                    v-model="form.handleName"
+                                    type="text"
+                                    class="mt-1 block w-full"
+                                    required
+                                />
+                            </div>
+
+                            <div class="mx-auto mt-6 w-fit">
+                                <label class="flex items-center">
+                                    <Checkbox
+                                        v-model:checked="form.showName"
+                                        name="showName"
+                                    />
+                                    <span class="ml-2 text-sm text-gray-600"
+                                        >あなたのハンドルネームを登録者として表示しますか？</span
+                                    >
+                                </label>
+                            </div>
+                        </div>
+                        <div
+                            class="mx-auto mt-12 flex w-fit flex-col justify-center"
+                        >
+                            <p
+                                v-if="form.handleName == ''"
+                                class="animate-bounce text-center text-red-600"
+                            >
+                                ハンドルネームを入力してください。（データ操作時に必要です。）
+                            </p>
+                            <button
+                                class="mx-auto flex w-fit items-center rounded-xl bg-[#c20063] py-3 px-12 text-3xl text-white shadow-sm shadow-[#550341]"
+                                @click="registerVideo"
+                            >
+                                Launch
+                            </button>
+                        </div>
                     </div>
-                </div>
-                <div v-if="step == 2">
-                    <YouTubeResponsive
-                        ref="youtubeComponent"
-                        :timeArray="timeArray"
-                        :videoId="videoId"
+                    <div
+                        v-if="!showConfirm"
+                        class="mx-auto mt-2 flex w-fit flex-col"
                     >
-                        <template v-slot:activator="{ play, pause, ytStatus }">
-                            <div class="flex justify-around pb-1">
+                        <button
+                            class="flex flex-row items-center rounded-md bg-ptr-main px-8 py-4 text-2xl text-white"
+                            @click="registerWhole"
+                        >
+                            この動画全体を登録<svg
+                                class="mx-2 h-8 w-8 fill-white p-1"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 512 512"
+                            >
+                                <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                                <path
+                                    d="M502.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L402.7 224 192 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l210.7 0-73.4 73.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l128-128zM160 96c17.7 0 32-14.3 32-32s-14.3-32-32-32L96 32C43 32 0 75 0 128L0 384c0 53 43 96 96 96l64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0c-17.7 0-32-14.3-32-32l0-256c0-17.7 14.3-32 32-32l64 0z"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+                    <div
+                        v-if="showRegisterRange"
+                        class="mx-auto mt-12 max-w-xl p-3"
+                    >
+                        <div class="flex flex-col gap-4">
+                            <div class="flex flex-row items-center">
                                 <button
-                                    v-if="ytStatus"
-                                    v-on:click="pause(pause)"
-                                    class="text-sm text-gray-900 lg:text-base"
+                                    class="mr-1 rounded bg-white shadow-sm shadow-custom-shadow"
+                                    @click="form.start = currentTime"
                                 >
                                     <svg
-                                        class="h-6 w-6 fill-white lg:h-10 lg:w-10"
                                         xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 320 512"
+                                        viewBox="0 0 448 512"
+                                        class="h-8 w-8 p-1"
                                     >
                                         <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                                         <path
-                                            d="M48 64C21.5 64 0 85.5 0 112V400c0 26.5 21.5 48 48 48H80c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H48zm192 0c-26.5 0-48 21.5-48 48V400c0 26.5 21.5 48 48 48h32c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H240z"
+                                            d="M176 0c-17.7 0-32 14.3-32 32s14.3 32 32 32h16V98.4C92.3 113.8 16 200 16 304c0 114.9 93.1 208 208 208s208-93.1 208-208c0-41.8-12.3-80.7-33.5-113.2l24.1-24.1c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L355.7 143c-28.1-23-62.2-38.8-99.7-44.6V64h16c17.7 0 32-14.3 32-32s-14.3-32-32-32H224 176zm72 192V320c0 13.3-10.7 24-24 24s-24-10.7-24-24V192c0-13.3 10.7-24 24-24s24 10.7 24 24z"
                                         />
                                     </svg>
                                 </button>
+                                <input
+                                    ref="input"
+                                    class="grow rounded-md border-gray-300 px-2 py-1 shadow-sm shadow-custom-shadow focus:border-ptr-main focus:ring-ptr-main"
+                                    :value="encodeTime(form.start)"
+                                    @input="
+                                        form.start = decodeTime(
+                                            $event.target.value
+                                        )
+                                    "
+                                    required
+                                />
                                 <button
-                                    v-else
-                                    v-on:click="play(play)"
-                                    class="text-sm text-gray-900 lg:text-base"
+                                    class="ml-1 rounded bg-white shadow-sm shadow-custom-shadow"
+                                    @click="playAt(form.start)"
                                 >
                                     <svg
-                                        class="h-6 w-6 fill-white lg:h-10 lg:w-10"
                                         xmlns="http://www.w3.org/2000/svg"
                                         viewBox="0 0 384 512"
+                                        class="h-8 w-8 p-1"
                                     >
                                         <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                                         <path
@@ -645,118 +654,158 @@ export default {
                                     </svg>
                                 </button>
                             </div>
-                        </template>
-                    </YouTubeResponsive>
-                    <form @submit.prevent="submit">
-                        <div class="mx-auto w-full px-6 pb-64">
-                            <div class="my-16 block">
-                                <div class="mx-auto mt-4 max-w-7xl">
-                                    <InputLabel
-                                        for="dataTitle"
-                                        value="Data Title"
-                                    />
-                                    <TextInput
-                                        id="dataTitle"
-                                        v-model="form.title"
-                                        type="text"
-                                        class="mt-1 block w-full"
-                                        required
-                                        autofocus
-                                    />
-                                </div>
-                                <div
-                                    class="mx-auto mt-12 max-w-xl"
-                                    v-if="!$page.props.auth.user"
+                            <div class="flex flex-row items-center">
+                                <button
+                                    class="mr-1 rounded bg-white shadow-sm shadow-custom-shadow"
+                                    @click="form.end = currentTime"
                                 >
-                                    <InputLabel
-                                        for="handleName"
-                                        value="Handle Name"
-                                    />
-                                    <TextInput
-                                        id="handleName"
-                                        v-model="form.handleName"
-                                        type="text"
-                                        class="mt-1 block w-full"
-                                        required
-                                    />
-                                </div>
-
-                                <div class="mx-auto mt-12 w-fit">
-                                    <label class="flex items-center">
-                                        <Checkbox
-                                            v-model:checked="form.public"
-                                            name="public"
-                                        />
-                                        <span class="ml-2 text-sm text-gray-600"
-                                            >このデータを公開設定にしますか？</span
-                                        >
-                                    </label>
-                                </div>
-
-                                <div
-                                    class="mx-auto mt-12 w-fit"
-                                    v-if="form.public"
-                                >
-                                    <label class="flex items-center">
-                                        <Checkbox
-                                            v-model:checked="form.showName"
-                                            name="showName"
-                                        />
-                                        <span class="ml-2 text-sm text-gray-600"
-                                            >あなたのハンドルネームを登録者として表示しますか？</span
-                                        >
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="animate-bounce">
-                                <p
-                                    v-if="form.title == ''"
-                                    class="text-center text-red-600"
-                                >
-                                    データのタイトルを設定してください。
-                                </p>
-
-                                <p
-                                    v-if="form.handleName == ''"
-                                    class="text-center text-red-600"
-                                >
-                                    ハンドルネームを入力してください。（データ操作時に必要です。）
-                                </p>
-                            </div>
-                            <transition>
-                                <div
-                                    class="mx-auto mt-12 w-fit"
-                                    :class="{ 'opacity-25': form.processing }"
-                                    :disabled="form.processing"
-                                    v-if="
-                                        form.title != '' &&
-                                        form.handleName != ''
-                                    "
-                                >
-                                    <button
-                                        type="submit"
-                                        class="launchButton mx-auto flex aspect-square w-fit flex-col items-center justify-center whitespace-nowrap rounded-full py-1 px-3 font-Abril text-xl text-white shadow-md shadow-[#550341] lg:py-2 lg:px-6 lg:text-3xl"
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 448 512"
+                                        class="h-8 w-8 p-1"
                                     >
-                                        Launch
-                                        <svg
-                                            fill="none"
-                                            stroke="currentColor"
-                                            class="h-8 w-8 animate-pulse stroke-white lg:h-10 lg:w-10"
-                                            stroke-width="1.5"
-                                            viewBox="0 0 24 24"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.119-8.54a6 6 0 00-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 00-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 01-2.448-2.448 14.9 14.9 0 01.06-.312m-2.24 2.39a4.493 4.493 0 00-1.757 4.306 4.493 4.493 0 004.306-1.758M16.5 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"
-                                            ></path>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </transition>
+                                        <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                                        <path
+                                            d="M176 0c-17.7 0-32 14.3-32 32s14.3 32 32 32h16V98.4C92.3 113.8 16 200 16 304c0 114.9 93.1 208 208 208s208-93.1 208-208c0-41.8-12.3-80.7-33.5-113.2l24.1-24.1c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L355.7 143c-28.1-23-62.2-38.8-99.7-44.6V64h16c17.7 0 32-14.3 32-32s-14.3-32-32-32H224 176zm72 192V320c0 13.3-10.7 24-24 24s-24-10.7-24-24V192c0-13.3 10.7-24 24-24s24 10.7 24 24z"
+                                        />
+                                    </svg>
+                                </button>
+                                <input
+                                    ref="input"
+                                    class="grow rounded-md border-gray-300 px-2 py-1 shadow-sm shadow-custom-shadow focus:border-ptr-main focus:ring-ptr-main"
+                                    :value="encodeTime(form.end)"
+                                    @input="
+                                        form.end = decodeTime($event.target.end)
+                                    "
+                                />
+                                <button
+                                    class="ml-1 rounded bg-white shadow-sm shadow-custom-shadow"
+                                    @click="playAt(form.start)"
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 384 512"
+                                        class="h-8 w-8 p-1"
+                                    >
+                                        <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                                        <path
+                                            d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"
+                                        />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="mr-0 ml-auto w-fit">
+                                <button
+                                    class="flex flex-row items-center rounded-md bg-ptr-dark-brown px-3 py-2 text-ptr-white"
+                                    @click="form.end = videoLength"
+                                >
+                                    動画の最後を設定する
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 320 512"
+                                        class="h-6 w-6 fill-ptr-white p-1"
+                                    >
+                                        <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                                        <path
+                                            d="M52.5 440.6c-9.5 7.9-22.8 9.7-34.1 4.4S0 428.4 0 416V96C0 83.6 7.2 72.3 18.4 67s24.5-3.6 34.1 4.4l192 160L256 241V96c0-17.7 14.3-32 32-32s32 14.3 32 32V416c0 17.7-14.3 32-32 32s-32-14.3-32-32V271l-11.5 9.6-192 160z"
+                                        />
+                                    </svg>
+                                </button>
+                            </div>
+                            <p
+                                v-if="form.start >= form.end"
+                                class="mt-6 text-center leading-6 text-red-600"
+                            >
+                                終了時間が開始時間よりも前になっています。<br />終了時刻は自動的に動画の最後に設定されます。
+                            </p>
                         </div>
-                    </form>
+                        <div class="mx-auto mt-20 max-w-xl">
+                            <div v-if="!$page.props.auth.user">
+                                <InputLabel
+                                    for="handleName"
+                                    value="Handle Name"
+                                />
+                                <TextInput
+                                    id="handleName"
+                                    v-model="form.handleName"
+                                    type="text"
+                                    class="mt-1 block w-full"
+                                    required
+                                />
+                            </div>
+
+                            <div class="mx-auto mt-6 w-fit">
+                                <label class="flex items-center">
+                                    <Checkbox
+                                        v-model:checked="form.showName"
+                                        name="showName"
+                                    />
+                                    <span class="ml-2 text-sm text-gray-600"
+                                        >あなたのハンドルネームを登録者として表示しますか？</span
+                                    >
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mx-auto mt-12 w-fit">
+                            <p
+                                v-if="form.handleName == ''"
+                                class="animate-bounce text-center text-red-600"
+                            >
+                                ハンドルネームを入力してください。（データ操作時に必要です。）
+                            </p>
+                            <button
+                                class="mx-auto flex w-fit items-center rounded-xl bg-[#c20063] py-3 px-12 text-3xl text-white shadow-sm shadow-[#550341]"
+                                @click="registerVideo"
+                            >
+                                Launch
+                            </button>
+                        </div>
+                    </div>
+                    <div
+                        v-if="!showRegisterRange"
+                        class="mx-auto mt-2 flex w-fit flex-col"
+                    >
+                        <button
+                            class="mt-6 flex flex-row items-center rounded-md bg-ptr-dark-brown px-8 py-4 text-2xl text-white"
+                            @click="registerPart"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="mx-2 h-8 w-8 fill-white p-1"
+                                viewBox="0 0 640 512"
+                            >
+                                <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                                <path
+                                    d="M32 64c17.7 0 32 14.3 32 32l0 320c0 17.7-14.3 32-32 32s-32-14.3-32-32V96C0 78.3 14.3 64 32 64zm214.6 73.4c12.5 12.5 12.5 32.8 0 45.3L205.3 224l229.5 0-41.4-41.4c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l96 96c12.5 12.5 12.5 32.8 0 45.3l-96 96c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L434.7 288l-229.5 0 41.4 41.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0l-96-96c-12.5-12.5-12.5-32.8 0-45.3l96-96c12.5-12.5 32.8-12.5 45.3 0zM640 96V416c0 17.7-14.3 32-32 32s-32-14.3-32-32V96c0-17.7 14.3-32 32-32s32 14.3 32 32z"
+                                />
+                            </svg>
+                            範囲を指定して登録
+                        </button>
+                    </div>
+                </div>
+                <div
+                    v-if="step == 2"
+                    class="mx-auto mt-12 max-w-7xl px-6 pt-12 text-center text-xl"
+                >
+                    <p class="text-ptr-dark-pink">
+                        指定の動画は既に登録されています。{{
+                            timerValue
+                        }}秒後にScheduleページに遷移します。
+                    </p>
+                    <div class="mx-auto mt-24 flex w-fit flex-col">
+                        <Link
+                            as="button"
+                            :href="route('toppage')"
+                            class="rounded-md bg-ptr-dark-brown px-6 py-3 text-ptr-white"
+                            >Scheduleページ</Link
+                        >
+                        <button
+                            @click="otherRegister"
+                            class="my-6 rounded-md bg-ptr-dark-brown px-6 py-3 text-ptr-white"
+                        >
+                            別の動画を登録する
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

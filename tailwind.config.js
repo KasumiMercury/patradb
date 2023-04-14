@@ -1,4 +1,5 @@
 const defaultTheme = require("tailwindcss/defaultTheme");
+const plugin = require("tailwindcss/plugin");
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -16,6 +17,8 @@ module.exports = {
                 sans: ["Figtree", ...defaultTheme.fontFamily.sans],
                 Titan: ["Titan One"],
                 Abril: ["Abril Fatface"],
+                Zen: ["Zen Kaku Gothic Antique"],
+                pGothic: ["MS Ｐゴシック"],
             },
             borderWidth: {
                 8: "8px",
@@ -36,10 +39,22 @@ module.exports = {
                         "animation-timing-function": "cubic-bezier(0,0,0.2,1)",
                     },
                 },
+                float: {
+                    "0%, 50%, 100%": {
+                        transform: "translate(0,0)",
+                    },
+                    "25%": {
+                        transform: "translate(0,-5px) rotate(-5deg)",
+                    },
+                    "75%": {
+                        transform: "translate(0,5px) rotate(5deg)",
+                    },
+                }
             },
             animation: {
                 "spin-slow": "spin 3s linear infinite",
                 "side-bounce": "side_bounce 1s infinite",
+                "float": "float 10s ease infinite",
             },
             backgroundImage: {
                 "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
@@ -59,5 +74,27 @@ module.exports = {
         require("@tailwindcss/forms"),
         require("@tailwindcss/typography"),
         require("tailwindcss-safe-area"),
+        plugin(function ({ addUtilities, addComponents, e, prefix, config }) {
+          const newUtilities = {
+            ".horizontal-tb": {
+              writingMode: "horizontal-tb",
+            },
+            ".vertical-rl": {
+              writingMode: "vertical-rl",
+            },
+            ".vertical-lr": {
+              writingMode: "vertical-lr",
+            },
+            ".drag-none": {
+              "-webkit-user-drag": "none",
+              "-moz-user-drag": "none",
+              "user-drag": "none",
+            },
+            ".title-display":{
+              "word-break": "break-word",
+            }
+          };
+          addUtilities(newUtilities);
+        }),
     ],
 };

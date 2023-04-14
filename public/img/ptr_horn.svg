@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 1080 1080" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
+    <g transform="matrix(1.6925,0,0,1.6925,-191.62,-219.992)">
+        <g id="レイヤー1">
+            <path d="M238.863,398.703C255.253,333.468 289.435,291.961 316.465,264.772C375.177,205.716 461.158,147.671 527.865,132.313C463.707,219.151 423.93,303.703 405.441,386.26L360.752,410.879C325.532,389.045 284.073,387.711 238.863,398.703Z" style="fill:url(#_Linear1);stroke:rgb(54,4,15);stroke-width:0.59px;"/>
+            <path d="M564.979,692.974C564.979,692.974 481.729,697.187 475.603,666.75C467.312,625.558 579.42,538.984 664.845,478.705C521.222,507.203 385.03,553.759 261.526,631.127C323.401,634.658 381.452,643.847 394.708,664.378C407.964,684.909 341.061,754.313 341.061,754.313C439.411,775.008 532.806,748.415 564.979,692.974Z" style="fill:url(#_Radial2);stroke:rgb(54,4,15);stroke-width:0.59px;"/>
+            <path d="M252.107,472.711C305.247,366.54 389.636,325.416 498.722,335.702C452.831,379.512 422.278,439.106 419.204,466.129C417.913,477.481 437.19,485.658 448.628,484.271C489.568,479.305 607.986,475.033 664.845,478.705C524.957,513.622 390.453,564.24 261.526,631.127C285.43,588.935 326.117,547.103 348.033,532.046C359.967,523.847 366.817,501.011 358.288,489.837C339.29,464.946 295.381,464.733 252.107,472.711Z" style="fill:url(#_Radial3);stroke:rgb(54,4,15);stroke-width:0.59px;"/>
+        </g>
+    </g>
+    <defs>
+        <linearGradient id="_Linear1" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(-144.715,268.023,-268.023,-144.715,434.1,139.297)"><stop offset="0" style="stop-color:rgb(131,29,66);stop-opacity:1"/><stop offset="0.75" style="stop-color:rgb(93,29,49);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(53,28,32);stop-opacity:1"/></linearGradient>
+        <radialGradient id="_Radial2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(139.715,153.954,-203.622,184.79,378.696,673.067)"><stop offset="0" style="stop-color:rgb(52,28,34);stop-opacity:1"/><stop offset="0.62" style="stop-color:rgb(83,28,46);stop-opacity:1"/><stop offset="0.77" style="stop-color:rgb(114,28,57);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(120,28,59);stop-opacity:1"/></radialGradient>
+        <radialGradient id="_Radial3" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(322.624,-45.0197,32.3906,232.12,337.664,526.614)"><stop offset="0" style="stop-color:rgb(51,28,34);stop-opacity:1"/><stop offset="0.33" style="stop-color:rgb(59,28,37);stop-opacity:1"/><stop offset="0.43" style="stop-color:rgb(83,28,46);stop-opacity:1"/><stop offset="0.5" style="stop-color:rgb(114,28,57);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(140,28,66);stop-opacity:1"/></radialGradient>
+    </defs>
+</svg>

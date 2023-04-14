@@ -22,10 +22,10 @@ export default {
 <template>
     <div>
         <Head>
-            <title>Data</title>
+            <title>Memoories</title>
         </Head>
         <Teleport to='[data-slot="header"]' v-if="mounted">
-            <p class="text-xs font-semibold text-gray-800">Data</p>
+            <p class="text-xs font-semibold text-gray-800">Memoories</p>
         </Teleport>
 
         <div>

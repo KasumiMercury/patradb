@@ -24,7 +24,6 @@ const initialForm = {
         59
     ),
     eventCode: Math.random().toString(32).substring(2),
-    type: null,
     handleName: "",
     showName: true,
 };

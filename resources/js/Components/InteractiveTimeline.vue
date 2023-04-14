@@ -374,7 +374,7 @@ const drawAxis = () => {
     zoomSubGroup.classed("hidden", true);
 };
 const updateAxisMain = () => {
-    let t = d3.transition().duration(200).ease(d3.easeLinear);
+    let t = d3.transition().duration(100).ease(d3.easeLinear);
     mainGroup
         .select(".axis")
         .transition(t)
@@ -388,7 +388,7 @@ const updateAxisMain = () => {
         .style("text-anchor", "start");
 };
 const updateAxisZoom = () => {
-    let t = d3.transition().duration(200);
+    let t = d3.transition().duration(100);
     zoomGroup
         .select(".axis")
         .transition(t)
@@ -409,7 +409,7 @@ const updateAxisZoomSub = () => {
     ]);
 };
 const showZoomSub = () => {
-    let t = d3.transition().duration(200);
+    let t = d3.transition().duration(100);
     mainGroup
         .transition(t)
         .attr(
@@ -433,7 +433,7 @@ const showZoomSub = () => {
     updateTimeMainDisplay();
 };
 const hideZoomSub = () => {
-    let t = d3.transition().duration(200);
+    let t = d3.transition().duration(100);
     zoomSubGroup.classed("hidden", true);
     zoomSubGroup.transition(t).attr("height", "0");
     mainGroup
@@ -468,7 +468,7 @@ const updateZoomSub = () => {
         .domain([start, end])
         .range([0, width - margin.left - margin.right]);
     xAxisZoomSub.scale(xScaleZoomSub);
-    let t = d3.transition().duration(200);
+    let t = d3.transition().duration(100);
     zoomSubGroup
         .select(".axis")
         .transition(t)
@@ -871,20 +871,7 @@ const timeDrag = (event, select) => {
                 Number(180 * (timeSet.value.indexOf(select) % 2)) +
                 ")"
             );
-        })
-        .call(
-            d3
-                .drag()
-                .on("start", function (event, d) {
-                    timeSelect(d);
-                })
-                .on("drag", function (event, d) {
-                    timeDrag(event, d);
-                })
-                .on("end", function (event) {
-                    timeDragged(event);
-                })
-        );
+        });
 };
 const timeDragged = (event) => {
     timeSet.value[timeSet.value.indexOf(selectData)] = Math.floor(
@@ -1096,25 +1083,6 @@ watch(
         updateProgress();
     }
 );
-// watch(
-//     ()=>props.isTransfer,
-//     () =>{
-
-// if (props.isTransfer && $cookies.isKey("playerTimeArray")) {
-//     let temp = $cookies.get("playerTimeArray");
-//     timeSet.value = temp;
-//     histry.push([...timeSet.value]);
-//     histryIndex++;
-//     for(let i = 0; i < timeSet.value.length; i++){
-//         menuSet.value.push(false)
-//     }
-//     updateTimeArray();
-//     generateColScale();
-//     updateTimeZoomDisplay();
-//     updateTimeMainDisplay();
-// }
-//     }
-// )
 
 const changeTime = () => {
     updateTimeArray();

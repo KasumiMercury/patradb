@@ -22,3 +22,7 @@ Route::prefix('post')->group(function(){
     Route::POST('schedule',[App\Http\Controllers\DataController::class, 'PostSchedule'])->name('post.schedule');
     Route::POST('player',[App\Http\Controllers\DataController::class, 'PostPlayer'])->name('post.player');
 });
+
+Route::prefix('check')->group(function(){
+    Route::GET('collabo',[App\Http\Controllers\DataController::class, 'CheckCollabo'])->name('check.collabo');
+});

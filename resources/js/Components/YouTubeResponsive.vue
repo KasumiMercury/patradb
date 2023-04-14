@@ -104,7 +104,7 @@ onBeforeUnmount(() => {
 }
 </style>
 <template>
-    <div class="mx-auto aspect-video max-w-5xl" ref="wrapperRef">
+    <div class="mx-auto aspect-video max-w-5xl px-1" ref="wrapperRef">
         <div
             :class="{
                 'my-0 aspect-video w-full': !float,
@@ -115,7 +115,8 @@ onBeforeUnmount(() => {
             <div
                 class="bg-zinc-800"
                 :class="{
-                    'h-full w-full rounded-t-md p-3 lg:rounded-md': !float,
+                    'h-full w-full rounded-t-md p-1 md:p-3 lg:rounded-md':
+                        !float,
                     'aspect-video w-64 md:w-96': float,
                 }"
             >
@@ -146,7 +147,7 @@ onBeforeUnmount(() => {
         </div>
         <div
             v-if="!float"
-            class="mx-auto w-full max-w-xl rounded-b-xl bg-zinc-800 px-4 py-1"
+            class="mx-auto w-full max-w-xl rounded-b-xl bg-zinc-800 px-4 pt-1 pb-2"
         >
             <slot
                 name="activator"

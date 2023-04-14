@@ -18,21 +18,33 @@ use Inertia\Inertia;
 /*main routes*/
 Route::get('/',[App\Http\Controllers\ViewController::class, 'TopPage'])->name('toppage');
 
-Route::get('data',function () {
-    return Inertia::render('DataView');
-})->name('dataview');
+Route::prefix('memories')->group(function(){
+    Route::get('/',function () {
+        return Inertia::render('MemoryTop');
+    })->name('dataview');
+    Route::get('search',[App\Http\Controllers\ViewController::class,'CreatePlayer'])->name('memory.search');
+    Route::get('videos',[App\Http\Controllers\ViewController::class,'SearchVideo'])->name('memory.videos');
+    Route::get('collabo',[App\Http\Controllers\ViewController::class,'CreatePlayer'])->name('memory.collabo');
+    Route::get('list',[App\Http\Controllers\ViewController::class,'CreatePlayer'])->name('memory.list');
+    Route::get('player',[App\Http\Controllers\ViewController::class,'CreatePlayer'])->name('memory.player');
+});
 
-Route::prefix('add')->group(function(){
+Route::prefix('launch')->group(function(){
     Route::get('/',function () {
         return Inertia::render('AddData');
     })->name('adddata');
     Route::get('player',[App\Http\Controllers\ViewController::class,'CreatePlayer'])->name('create.player');
-    Route::get('complete',[App\Http\Controllers\ViewController::class,'LaunchComplete'])->name('data.launched');
+    Route::get('complete/{id}',[App\Http\Controllers\ViewController::class,'LaunchComplete'])->name('data.launched');
+    Route::get('collabo',function(){
+        return Inertia::render('RegisterCollabo');
+    })->name('memory.collabo');
 });
 
-Route::get('chat',function () {
-    return Inertia::render('ChatView');
-})->name('chatview');
+Route::prefix('post')->group(function(){
+    Route::POST('collabo',[App\Http\Controllers\DataController::class, 'PostCollabo'])->name('post.collabo');
+});
+
+Route::get('chat',[App\Http\Controllers\ViewController::class,'ViewChat'])->name('chatview');
 
 Route::get('tools',function () {
     return Inertia::render('ToolsTop');

@@ -48,7 +48,7 @@ class getchat extends Command
             ];
 
             $videoId = $tempVideo["video_id"];
-            
+
             $response = $youtube->liveChatMessages->listLiveChatMessages($tempVideo["chat_id"],'snippet,authorDetails',$queryParams);
             $items = $response["items"];
             $itemNum = count($items);

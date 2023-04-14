@@ -59,7 +59,7 @@ class getvideos extends Command
 
                 for($k = 0; $k < count($items["items"]); $k++){
                     $tempVideoId = $items["items"][$k]["contentDetails"]["videoId"];
-                    
+
                     if($tempVideoId != null){
 
                         $isNew = DB::table('videos')->where('video_id',$tempVideoId)->doesntExist();
@@ -67,7 +67,7 @@ class getvideos extends Command
                             $tempTitle = $items["items"][$k]["snippet"]["title"];
                             $tempDescription = $items["items"][$k]["snippet"]["description"];
                             $tempPublishedAt = date('Y-m-d H:i:s', strtotime($items["items"][$k]["snippet"]["publishedAt"]));
-            
+
                             $resultArray[] = [
                                 "title" => $tempTitle,
                                 "video_id" => $tempVideoId,
@@ -79,13 +79,14 @@ class getvideos extends Command
                                 "created_at" => date('Y-m-d H:i:s'),
                                 "updated_at" => date('Y-m-d H:i:s'),
                                 "description" => $tempDescription,
+                                "free_title" => $tempTitle,
                             ];
                             print_r($resultArray);
                         }
 
                     }
                 }
-        
+
                 $nextToken = $items["nextPageToken"];
                 if(count($resultArray) > 0){
                     DB::table('videos')->insert($resultArray);

@@ -1,40 +1,59 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, watch, computed } from "vue";
 import { Head, Link, router } from "@inertiajs/vue3";
-import Banner from "@/Components/Banner.vue";
 import ResponsiveNavLink from "@/Components/ResponsiveNavLink.vue";
 
 const props = defineProps({
     title: String,
-    testValue: Boolean,
+    forceMenuHide: Boolean,
 });
-
 /* Get Device Width */
 const innerWidth = ref(2000);
 const isServer = typeof window === "undefined";
+const currentUrl = ref("");
 
 if (!isServer) {
     innerWidth.value = window.innerWidth;
 }
 
 const checkWindowSize = () => {
-    if (window.innerWidth >= 1280) {
-        if (isSideOpen.value === false && innerWidth.value < 1280)
-            isSideOpen.value = true;
+    if (props.forceMenuHide) {
+        minimumWindow();
     } else {
-        if (isSideOpen.value === true) minimumWindow();
+        if (window.innerWidth >= 1280) {
+            if (isSideOpen.value === false && innerWidth.value < 1280)
+                isSideOpen.value = true;
+        } else {
+            if (isSideOpen.value === true) minimumWindow();
+        }
     }
     innerWidth.value = window.innerWidth;
 };
 /* Get Device Width End*/
 
+const onKeyDown = (e) => {
+    console.log(e);
+    // keyInputArray.push(e);
+    // if (keyInputArray.length >= 10) {
+    //     keyInputArray = keyInputArray.slice(-10);
+    //     if (String(keyInputArray) === String(command)) {
+    //         console.log("command fire");
+    //     }
+    // }
+};
+
 onMounted(() => {
+    // document.addEventListener('keydown', onKeyDown)
     if (!isServer) {
-        window.addEventListener("resize", checkWindowSize);
         innerWidth.value = window.innerWidth;
+        window.addEventListener("resize", checkWindowSize);
+        if (props.forceMenuHide) {
+            minimumWindow();
+        }
     }
 });
 onUnmounted(() => {
+    // document.removeEventListener('keydown', onKeyDown)
     if (!isServer) {
         window.removeEventListener("resize", checkWindowSize);
     }
@@ -45,6 +64,23 @@ const showingNavigationDropdown = ref(false);
 const isSideOpen = ref(innerWidth.value >= 1280 ? true : false);
 const isMaximum = ref(false);
 
+watch(
+    () => props.forceMenuHide,
+    (value) => {
+        if (value) {
+            showingNavigationDropdown.value = false;
+            minimumWindow();
+        }
+    }
+);
+watch(
+    () => currentUrl.value,
+    () => {
+        showingNavigationDropdown.value = false;
+        isSideOpen.value = innerWidth.value >= 1280 ? true : false;
+    }
+);
+
 const minimumWindow = () => {
     isSideOpen.value = false;
     isMaximum.value = false;
@@ -53,14 +89,9 @@ const minimumWindow = () => {
 const logout = () => {
     router.post(route("logout"));
 };
-const TopNavStyle = ref({
-    "background-color": "#2d2a2d",
-});
-const TopNavFontStyle = ref({
-    color: "#fffafb",
-});
-const headerStyle = ref({
-    "background-color": "#4a0139",
+
+router.on("start", (event) => {
+    currentUrl.value = event.detail.visit.url;
 });
 </script>
 <style>
@@ -120,31 +151,38 @@ const headerStyle = ref({
 }
 </style>
 <template>
-    <div class="bg-[#ffedf3]">
-        <Banner />
+    <div class="relative h-full w-full bg-[#ffedf3]">
+        <div
+            class="absolute top-0 left-0 z-0 min-h-full w-full"
+            data-slot="bg-wrapper"
+        ></div>
 
         <div class="flex min-h-screen flex-col py-0">
             <!-- App TopBar Navigation-->
             <nav class="TopNavBar relative z-40 bg-ptr-dark-brown pt-safe">
                 <!-- Primary Navigation Menu -->
-                <div class="mx-auto max-w-7xl py-3 px-4 sm:px-6 lg:px-8">
-                    <div class="flex h-16 justify-between lg:mx-auto lg:w-fit">
-                        <div class="flex">
-                            <!-- App Name -->
-                            <div class="flex items-center">
-                                <Link :href="route('toppage')">
-                                    <!-- <ApplicationMark class="block h-9 w-auto" /> -->
-                                    <h1
-                                        class="ml-0 mr-auto px-4 font-Abril text-2xl tracking-widest text-[#fffafb] md:ml-2 md:text-4xl lg:mx-0"
-                                    >
-                                        Unofficial Patra DB
-                                    </h1>
-                                </Link>
-                            </div>
+                <div
+                    class="mx-auto max-w-7xl py-3 px-4 sm:px-6 lg:py-8 lg:px-8"
+                >
+                    <div
+                        class="flex h-16 items-center justify-between lg:mx-auto lg:w-fit"
+                    >
+                        <!-- App Name -->
+                        <div class="flex items-center">
+                            <Link :href="route('toppage')">
+                                <!-- <ApplicationMark class="block h-9 w-auto" /> -->
+                                <h1
+                                    class="ml-0 mr-auto px-4 font-Abril text-xl tracking-widest text-[#fffafb] sm:text-2xl md:ml-2 md:text-4xl lg:mx-0"
+                                >
+                                    Unofficial Patra DB
+                                </h1>
+                            </Link>
                         </div>
 
                         <!-- Hamburger -->
-                        <div class="-mr-2 flex items-center md:mr-4 lg:hidden">
+                        <div
+                            class="-mr-2 flex h-fit items-center md:mr-4 lg:hidden"
+                        >
                             <button
                                 class="inline-flex items-center justify-center rounded-md p-2 text-gray-100 transition duration-150 ease-in-out hover:bg-[#fb7faf] hover:text-ptr-dark-pink focus:bg-gray-100 focus:text-ptr-dark-pink focus:outline-none"
                                 @click="
@@ -202,7 +240,7 @@ const headerStyle = ref({
                     <div class="flex items-center px-4">
                         <div
                             v-if="$page.props.auth.user"
-                            class="my-2 w-full select-none text-center text-xl font-medium text-ptr-dark-pink"
+                            class="my-2 w-full select-none text-center text-xl font-medium text-ptr-dark-brown"
                         >
                             {{ $page.props.auth.user.name }}
                         </div>
@@ -221,19 +259,19 @@ const headerStyle = ref({
                             :href="route('toppage')"
                             :active="route().current('toppage')"
                         >
-                            TopPage
+                            Schedules
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
                             :href="route('dataview')"
                             :active="route().current('dataview')"
                         >
-                            Data
+                            Memories
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
                             :href="route('adddata')"
                             :active="route().current('adddata')"
                         >
-                            Add Data
+                            Launch
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
                             :href="route('chatview')"
@@ -260,7 +298,7 @@ const headerStyle = ref({
             </transition>
 
             <!-- Main Unit-->
-            <div class="relative w-full shrink-0 grow lg:flex lg:flex-row">
+            <div class="flex w-full grow-0 lg:grow lg:flex-row">
                 <div
                     v-if="isSideOpen"
                     @click="isSideOpen = !isSideOpen"
@@ -268,11 +306,11 @@ const headerStyle = ref({
                 ></div>
                 <!-- PG SideBar Navigation-->
                 <div
-                    class="relative  ml-0 hidden min-h-full w-0 lg:flex lg:w-fit select-none"
+                    class="relative ml-0 hidden min-h-full w-0 select-none lg:flex lg:w-fit"
                 >
                     <div
                         v-if="isSideOpen"
-                        class="hidden min-h-full w-0 overscroll-contain pl-1 lg:absolute lg:flex xl:relative select-none"
+                        class="hidden min-h-full w-0 select-none overscroll-contain pl-1 lg:absolute lg:flex xl:relative"
                         :class="{
                             'mx-0 mr-2 border-r border-ptr-dark-brown bg-ptr-light-pink shadow-md shadow-custom-shadow/80 lg:w-72':
                                 isMaximum,
@@ -280,10 +318,10 @@ const headerStyle = ref({
                         }"
                     >
                         <div
-                            class="customSticky h-fit w-full select-none z-30"
+                            class="customSticky z-30 h-fit w-full select-none"
                             :class="{
                                 'pt-0': isMaximum,
-                                'mt-12': !isMaximum,
+                                'mt-12 pt-12': !isMaximum,
                             }"
                         >
                             <div
@@ -392,7 +430,7 @@ const headerStyle = ref({
                                 <div class="px-3">
                                     <div
                                         v-if="$page.props.auth.user"
-                                        class="mx-auto mt-2 mb-4 w-fit select-none text-xl text-ptr-dark-pink"
+                                        class="mx-auto mt-2 mb-4 w-fit select-none text-xl text-ptr-dark-brown"
                                     >
                                         {{ $page.props.auth.user.name }}
                                     </div>
@@ -418,16 +456,16 @@ const headerStyle = ref({
                                         <template #icon>
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
-                                                viewBox="0 0 576 512"
+                                                viewBox="0 0 448 512"
                                                 class="mr-2 h-5 w-5"
                                             >
-                                                <!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                                                <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
                                                 <path
-                                                    d="M575.8 255.5c0 18-15 32.1-32 32.1h-32l.7 160.2c0 2.7-.2 5.4-.5 8.1V472c0 22.1-17.9 40-40 40H456c-1.1 0-2.2 0-3.3-.1c-1.4 .1-2.8 .1-4.2 .1H416 392c-22.1 0-40-17.9-40-40V448 384c0-17.7-14.3-32-32-32H256c-17.7 0-32 14.3-32 32v64 24c0 22.1-17.9 40-40 40H160 128.1c-1.5 0-3-.1-4.5-.2c-1.2 .1-2.4 .2-3.6 .2H104c-22.1 0-40-17.9-40-40V360c0-.9 0-1.9 .1-2.8V287.6H32c-18 0-32-14-32-32.1c0-9 3-17 10-24L266.4 8c7-7 15-8 22-8s15 2 21 7L564.8 231.5c8 7 12 15 11 24z"
+                                                    d="M96 32V64H48C21.5 64 0 85.5 0 112v48H448V112c0-26.5-21.5-48-48-48H352V32c0-17.7-14.3-32-32-32s-32 14.3-32 32V64H160V32c0-17.7-14.3-32-32-32S96 14.3 96 32zM448 192H0V464c0 26.5 21.5 48 48 48H400c26.5 0 48-21.5 48-48V192z"
                                                 />
                                             </svg>
                                         </template>
-                                        TopPage
+                                        Schedules
                                     </ResponsiveNavLink>
                                     <ResponsiveNavLink
                                         :href="route('dataview')"
@@ -445,7 +483,7 @@ const headerStyle = ref({
                                                 />
                                             </svg>
                                         </template>
-                                        Data
+                                        Memories
                                     </ResponsiveNavLink>
                                     <ResponsiveNavLink
                                         :href="route('adddata')"
@@ -463,7 +501,7 @@ const headerStyle = ref({
                                                 />
                                             </svg>
                                         </template>
-                                        Add Data
+                                        Launch
                                     </ResponsiveNavLink>
                                     <ResponsiveNavLink
                                         :href="route('chatview')"
@@ -536,7 +574,7 @@ const headerStyle = ref({
                     </div>
                     <div
                         v-if="!isSideOpen"
-                        class="relative hidden max-h-full min-h-full w-0 bg-ptr-light-pink lg:flex lg:w-12 lg:flex-col"
+                        class="relative z-10 hidden max-h-full min-h-full w-0 bg-ptr-light-pink shadow-md shadow-custom-shadow/80 lg:flex lg:w-12 lg:flex-col"
                     >
                         <div class="customSticky h-fit w-full">
                             <div class="mx-auto mt-2 w-fit">
@@ -577,25 +615,24 @@ const headerStyle = ref({
                     </div>
                 </div>
 
-                <!-- SP BottomBar Navigation -->
-                <div
-                    class="fixed inset-x-0 bottom-0 z-30 block h-12 w-screen bg-gray-300 pb-safe lg:absolute lg:hidden"
-                ></div>
-
-                <div class="z-0 lg:grow">
+                <div class="z-0 h-full grow">
                     <!-- Page Heading -->
-                    <header class="bg-[#ffedf3]">
-                        <div class="mx-auto py-3 px-6" data-slot="header"></div>
+                    <header class="py-3 px-6">
+                        <div class="mx-auto" data-slot="header"></div>
                     </header>
 
                     <!-- Page Content -->
-                    <main class="w-full max-w-full pb-12 lg:pb-0">
+                    <main class="w-full max-w-full pb-24 lg:pb-24">
                         <!-- <div class="w-full h-fit" data-slot="youtube-player"></div> -->
                         <slot />
                     </main>
                 </div>
+
+                <!-- SP BottomBar Navigation -->
+                <div
+                    class="fixed inset-x-0 bottom-0 z-30 block h-12 w-screen bg-gray-300 pb-safe lg:absolute lg:hidden"
+                ></div>
             </div>
         </div>
-        <p>{{ props.testValue }}</p>
     </div>
 </template>

@@ -32,8 +32,9 @@
     "@vuepic/vue-datepicker": "^4.2.0",
     "chroma-js": "^2.4.2",
     "d3": "^7.8.2",
+    "dayjs": "^1.11.7",
+    "gsap": "^3.11.5",
     "markuplint": "^3.6.0",
-    "pixi.js": "^7.2.0",
     "tailwindcss-safe-area": "^0.2.2",
     "vue-cookies": "^1.8.3",
     "vue3-youtube": "^0.1.9"
