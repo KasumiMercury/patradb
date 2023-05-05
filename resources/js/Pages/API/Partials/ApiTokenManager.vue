@@ -217,7 +217,7 @@ const deleteApiToken = () => {
 
                 <div
                     v-if="$page.props.jetstream.flash.token"
-                    class="mt-4 break-all rounded bg-gray-100 px-4 py-2 font-mono text-sm text-gray-500"
+                    class="font-mono mt-4 break-all rounded bg-gray-100 px-4 py-2 text-sm text-gray-500"
                 >
                     {{ $page.props.jetstream.flash.token }}
                 </div>

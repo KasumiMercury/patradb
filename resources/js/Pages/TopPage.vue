@@ -1,5 +1,5 @@
 <script setup>
-import { Head, Link } from "@inertiajs/vue3";
+import { Head, Link, usePage } from "@inertiajs/vue3";
 import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import TodayStream from "../Components/TodayStream.vue";
 import RssStream from "../Components/RssStream.vue";
@@ -8,6 +8,86 @@ import MonthlySchedule from "../Components/MonthlySchedule.vue";
 import balloonRainbow from "../Components/balloonRainbow.vue";
 import Banner from "@/Components/Banner.vue";
 import pkg from "lodash";
+import firebase from "../plugins/firebase";
+import { getMessaging, getToken, onMessage } from "firebase/messaging";
+import axios from "axios";
+
+const isNotificationPermissionDenied = ref(true);
+const isNotificationPermissionError = ref(false);
+const fcmToken = ref("");
+const isTokenRegisteredUser = ref(false);
+const permissionLoading = ref(false);
+// const analytics = getAnalytics(firebase);
+const messaging = getMessaging(firebase);
+
+const checkToken = () => {
+    if (fcmToken.value !== "") {
+        isNotificationPermissionDenied.value = false;
+        return;
+    }
+    getToken(messaging, {
+        vapidKey:
+            "BLkvwI8iBKXap-3P8T2iw2ETy4NybFkXHJWxm-SK_sSGFxlN0ntZTKvRzQx84HOFEJxBscjfGoPvSwegd8C6fSk",
+    })
+        .then((currentToken) => {
+            if (currentToken) {
+                fcmToken.value = currentToken;
+                if (usePage().props.auth.user !== null) {
+                    axios.post("/api/notification/user", {
+                        userId: usePage().props.auth.user.id,
+                        fcmToken: currentToken,
+                    });
+                } else {
+                    axios
+                        .get(
+                            route("check.notification.user", {
+                                fcmToken: currentToken,
+                            })
+                        )
+                        .then((res) => {
+                            console.log(res);
+                            if (res.data.isExist) {
+                                console.log("exist");
+                                isTokenRegisteredUser.value = true;
+                            }
+                        });
+                }
+                // console.log(currentToken);
+                permissionLoading.value = false;
+                isNotificationPermissionDenied.value = false;
+            } else {
+                console.log(
+                    "No registration token available. Request permission to generate one."
+                );
+                permissionLoading.value = true;
+                requestPermission();
+            }
+        })
+        .catch((err) => {
+            console.log("An error occurred while retrieving token. ", err);
+            isNotificationPermissionError.value = true;
+            permissionLoading.value = false;
+        });
+};
+
+const requestPermission = () => {
+    console.log("Requesting Permission");
+    Notification.requestPermission()
+        .then((permission) => {
+            if (permission === "granted") {
+                isNotificationPermissionDenied.value = false;
+                isNotificationPermissionError.value = false;
+                console.log("Notification permission granted.");
+            }
+        })
+        .catch((err) => {
+            console.log("Error Occured");
+        });
+};
+onMessage(messaging, (payload) => {
+    console.log("Message received. ", payload);
+});
+
 const { debounce, chunk, sortedIndexBy, sortedIndex } = pkg;
 
 const isServer = typeof window === "undefined";
@@ -175,6 +255,7 @@ defineProps({
     todayStream: Object,
     tomorrowStream: Object,
     today: Object,
+    coming: Object,
     persistent: Object,
     rss: Object,
     month: Object,
@@ -258,46 +339,69 @@ export default {
         <Teleport to='[data-slot="header"]' v-if="mounted">
             <p class="text-xs font-semibold text-gray-800">Schedule</p>
         </Teleport>
-        <div class="px-7 pt-12 xl:px-24">
+        <div class="px-7 pt-12 pb-40 xl:px-24">
             <Banner />
-            <div class="ml-0 mr-auto w-full lg:w-2/3">
-                <TodaySchedule :data="today" :persistent="persistent" />
+            <div class="ml-0 mr-auto w-full max-w-7xl lg:w-2/3">
+                <TodaySchedule
+                    :data="today"
+                    :coming="coming"
+                    :persistent="persistent"
+                    :permissionLoading="permissionLoading"
+                    :isNotificationPermissionDenied="
+                        isNotificationPermissionDenied
+                    "
+                    :isNotificationPermissionError="
+                        isNotificationPermissionError
+                    "
+                    :fcmToken="fcmToken"
+                    :isTokenRegisteredUser="isTokenRegisteredUser"
+                    @requestPermission="requestPermission"
+                    @checkToken="checkToken"
+                />
             </div>
-            <div class="mr-0 ml-auto mt-24 w-full lg:mt-12 lg:w-2/3">
-                <TodayStream :today="todayStream" :tomorrow="tomorrowStream"/>
-            </div>
-            <div
-                v-if="Object.keys(rss).length > 0"
-                class="ml-0 mr-0 mt-24 w-full lg:mr-auto lg:mt-12 lg:w-2/3"
-            >
-                <RssStream :data="rss" ref="rssStream" />
-            </div>
-            <div
-                class="mt-24 w-full lg:mt-12 lg:w-2/3"
-                :class="
-                    Object.keys(rss).length > 0
-                        ? 'mr-0 ml-auto'
-                        : 'mr-auto ml-0 '
-                "
-            >
+            <div class="mr-0 ml-auto mt-12 w-full max-w-7xl lg:mt-24 lg:w-2/3">
                 <MonthlySchedule
                     :monthData="month"
                     :otherData="other"
-                    :class="
-                        Object.keys(rss).length > 0
-                            ? 'rounded-br-lg rounded-bl-3xl before:right-2 before:rounded-bl-3xl before:rounded-br-lg'
-                            : 'rounded-bl-lg rounded-br-3xl before:left-2 before:rounded-br-3xl before:rounded-bl-lg'
-                    "
+                    class="rounded-br-lg rounded-bl-3xl before:left-2 before:rounded-bl-3xl before:rounded-br-lg"
                 />
             </div>
-            <div class="mx-auto mt-2 w-fit">
-                <Link
-                    as="button"
-                    :href="route('create.schedule')"
-                    class="mt-6 rounded-xl bg-[#c20063] py-3 px-8 text-sm text-[#ffedf3] md:py-8 md:px-12 md:text-lg"
-                >
-                    スケジュール登録
-                </Link>
+            <div
+                class="ml-0 mr-0 mt-12 w-full max-w-7xl lg:mt-24 lg:mr-auto lg:w-2/3"
+            >
+                <TodayStream
+                    :today="todayStream"
+                    :tomorrow="tomorrowStream"
+                    :persistent="persistent"
+                    :permissionLoading="permissionLoading"
+                    :isNotificationPermissionDenied="
+                        isNotificationPermissionDenied
+                    "
+                    :isNotificationPermissionError="
+                        isNotificationPermissionError
+                    "
+                    :fcmToken="fcmToken"
+                    :isTokenRegisteredUser="isTokenRegisteredUser"
+                    @requestPermission="requestPermission"
+                    @checkToken="checkToken"
+                />
+            </div>
+            <div class="mt-12 mr-0 ml-auto w-full max-w-7xl lg:mt-24 lg:w-2/3">
+                <RssStream
+                    :data="rss"
+                    ref="rssStream"
+                    :permissionLoading="permissionLoading"
+                    :isNotificationPermissionDenied="
+                        isNotificationPermissionDenied
+                    "
+                    :isNotificationPermissionError="
+                        isNotificationPermissionError
+                    "
+                    :fcmToken="fcmToken"
+                    :isTokenRegisteredUser="isTokenRegisteredUser"
+                    @requestPermission="requestPermission"
+                    @checkToken="checkToken"
+                />
             </div>
         </div>
         <Teleport to='[data-slot="bg-wrapper"]' v-if="mounted">
@@ -343,7 +447,7 @@ export default {
         <balloonRainbow
             :balloonShow="showScrollBaloon"
             @scrollTop="scrollTop"
-            class="fixed bottom-5 right-0 lg:right-5"
+            class="fixed bottom-5 right-0 mb-12 lg:right-5 lg:mb-0"
         ></balloonRainbow>
     </div>
 </template>

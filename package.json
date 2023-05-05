@@ -28,15 +28,21 @@
   },
   "dependencies": {
     "@github/hotkey": "^2.0.1",
+    "@headlessui/vue": "^1.7.13",
+    "@heroicons/vue": "^2.0.17",
     "@vue/eslint-config-prettier": "^7.1.0",
     "@vuepic/vue-datepicker": "^4.2.0",
     "chroma-js": "^2.4.2",
     "d3": "^7.8.2",
+    "daisyui": "^2.51.5",
     "dayjs": "^1.11.7",
+    "firebase": "^9.21.0",
     "gsap": "^3.11.5",
     "markuplint": "^3.6.0",
+    "p5": "^1.6.0",
     "tailwindcss-safe-area": "^0.2.2",
     "vue-cookies": "^1.8.3",
+    "vue3-carousel": "^0.3.0",
     "vue3-youtube": "^0.1.9"
   }
 }

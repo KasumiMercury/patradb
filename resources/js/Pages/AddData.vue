@@ -14,7 +14,6 @@ onMounted(() => (mounted.value = true));
 </script>
 <script>
 import AppLayout from "../Layouts/AppLayout.vue";
-
 export default {
     layout: AppLayout,
 };
@@ -22,23 +21,38 @@ export default {
 <template>
     <div>
         <Head>
-            <title>AddData</title>
+            <title>Launch</title>
         </Head>
         <Teleport to='[data-slot="header"]' v-if="mounted">
-            <p class="text-xs font-semibold text-gray-800">AddData</p>
+            <p class="text-xs font-semibold text-gray-800">Launch</p>
         </Teleport>
 
         <div>
-            <div class="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
-                <div class="mx-auto mt-12 w-fit">
-                    <Link
-                        as="button"
-                        :href="route('create.player')"
-                        class="rounded-xl bg-[#c20063] py-8 px-12 text-lg text-[#ffedf3]"
-                    >
-                        プレイヤー登録
-                    </Link>
-                </div>
+            <div
+                class="mx-auto mt-24 flex max-w-5xl flex-col justify-center gap-12 px-4 pt-4 sm:px-6 lg:px-8"
+            >
+                <p
+                    v-if="!$page.props.auth.user"
+                    class="font-bold text-ptr-main"
+                >
+                    以下の機能は現在、ログインユーザーのみ使用可能です。
+                </p>
+                <Link
+                    as="button"
+                    :disabled="!$page.props.auth.user"
+                    :href="route('create.player')"
+                    class="rounded-xl bg-ptr-dark-brown py-8 px-12 text-lg text-ptr-white disabled:opacity-70"
+                >
+                    Launch Memory
+                </Link>
+                <Link
+                    as="button"
+                    :disabled="!$page.props.auth.user"
+                    :href="route('create.collabo')"
+                    class="rounded-xl bg-ptr-dark-brown py-8 px-12 text-lg text-ptr-white disabled:opacity-70"
+                >
+                    Register Collabo
+                </Link>
             </div>
         </div>
     </div>

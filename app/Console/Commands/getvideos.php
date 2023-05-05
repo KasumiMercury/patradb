@@ -93,7 +93,6 @@ class getvideos extends Command
                     echo "added：".count($resultArray);
                 }
         }
-
         return Command::SUCCESS;
     }
 }

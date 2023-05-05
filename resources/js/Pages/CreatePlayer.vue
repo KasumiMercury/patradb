@@ -276,12 +276,12 @@ export default {
 </style>
 <template>
     <Head>
-        <title>CreatePlayer</title>
+        <title>LaunchMemory</title>
     </Head>
     <Teleport to='[data-slot="header"]' v-if="mounted">
         <p class="text-xs font-semibold text-gray-800">
-            <Link :href="route('adddata')" class="underline">AddData</Link> /
-            CreatePlayer
+            <Link :href="route('adddata')" class="underline">Launch</Link> /
+            LaunchMemory
         </p>
     </Teleport>
     <div>

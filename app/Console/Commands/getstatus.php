@@ -9,6 +9,7 @@ use Google_Client;
 use Google_Service_YouTube;
 require_once base_path().'\vendor\autoload.php';
 
+use Artisan;
 
 class getstatus extends Command
 {
@@ -37,7 +38,7 @@ class getstatus extends Command
         $client->setDeveloperKey(env('GOOGLE_API_GET_INFO_KEY'));
         $youtube = new Google_Service_YouTube($client);
 
-        $data = DB::table('videos')->whereNot('status','archived')->get();
+        $data = DB::table('videos')->whereNot('status','archived')->whereNot('status','freechat')->get();
         $dataNum = count($data);
 
         if($dataNum != 0){
@@ -94,6 +95,8 @@ class getstatus extends Command
                 }
             }
         }
+
+        Artisan::call('command:getArchivedScheduled');
         return Command::SUCCESS;
     }
 }

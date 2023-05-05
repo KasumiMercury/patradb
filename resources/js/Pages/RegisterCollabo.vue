@@ -228,7 +228,7 @@ export default {
     </Head>
     <Teleport to='[data-slot="header"]' v-if="mounted">
         <p class="text-xs font-semibold text-gray-800">
-            <Link :href="route('adddata')" class="underline">AddData</Link> /
+            <Link :href="route('adddata')" class="underline">Launch</Link> /
             RegisterCollabo
         </p>
     </Teleport>

@@ -43,5 +43,14 @@ defineProps({
             </h1>
         </div>
         <div class="h-64 w-full"></div>
+        <div class="ml-auto mt-4 mr-2 w-fit">
+            <Link
+                as="button"
+                :href="route('create.schedule')"
+                class="btn-secondary btn-sm btn text-white"
+            >
+                スケジュール登録
+            </Link>
+        </div>
     </div>
 </template>

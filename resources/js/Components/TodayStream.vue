@@ -1,20 +1,140 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed, watch } from "vue";
+import { Link, usePage } from "@inertiajs/vue3";
 import StreamCard from "./StreamCard.vue";
+import Modal from "./Modal.vue";
 defineProps({
     today: Object,
     tomorrow: Object,
+    isNotificationPermissionDenied: Boolean,
+    isNotificationPermissionError: Boolean,
+    permissionLoading: Boolean,
+    fcmToken: String,
+    isTokenRegisteredUser: Boolean,
 });
+const emits = defineEmits(["requestPermission", "checkToken"]);
+
+const NotificationModal = ref(false);
+const openModal = () => {
+    if (usePage().props.auth.user) {
+        emits("checkToken");
+    }
+    NotificationModal.value = true;
+};
 </script>
 <template>
     <div
-        class="relative rounded-t-lg rounded-br-lg rounded-bl-3xl bg-ptr-white px-4 pb-4 before:absolute before:top-2 before:right-2 before:-z-10 before:h-full before:w-full before:rounded-t-lg before:rounded-bl-3xl before:rounded-br-lg before:bg-yellow-500"
+        class="relative rounded-t-lg rounded-bl-lg rounded-br-3xl bg-ptr-white px-4 pb-4 before:absolute before:top-2 before:left-2 before:-z-10 before:h-full before:w-full before:rounded-t-lg before:rounded-br-3xl before:rounded-bl-lg before:bg-yellow-500"
     >
-        <div class="w-full select-none text-ptr-dark-brown">
-            <h1
-                class="flex items-center px-6 pt-12 pb-3 text-2xl lg:px-12 lg:pt-12">
-                Steraming Schedules
+        <div
+            class="text-ptr-dark-brown flex w-full flex-row items-center pt-6 pb-3 md:pt-12 md:pb-6"
+        >
+            <h1 class="select-none flex items-center text-2xl md:px-12 ">
+                <svg
+                    fill="none"
+                    stroke-width="1.5"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                    class="mr-2 h-6 w-6 stroke-ptr-dark-brown"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M9.348 14.651a3.75 3.75 0 010-5.303m5.304 0a3.75 3.75 0 010 5.303m-7.425 2.122a6.75 6.75 0 010-9.546m9.546 0a6.75 6.75 0 010 9.546M5.106 18.894c-3.808-3.808-3.808-9.98 0-13.789m13.788 0c3.808 3.808 3.808 9.981 0 13.79M12 12h.008v.007H12V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+                    ></path>
+                </svg>
+                Streaming Schedules
             </h1>
+            <div class="ml-auto mr-2 w-fit">
+                <button class="btn-primary btn text-white" @click="openModal">
+                    通知設定
+                </button>
+                <Modal
+                    :show="NotificationModal"
+                    @close="NotificationModal = false"
+                >
+                    <div>
+                        <template v-if="!$page.props.auth.user">
+                            <h3 class="my-2 text-center text-lg">
+                                ログインユーザーのみの機能です。
+                            </h3>
+                            <p class="my-3 text-center text-sm">
+                                だまして悪いが、仕様なんでな　<Link
+                                    class="px-1n link-primary link"
+                                    :href="route('transition.login')"
+                                    >ログイン</Link
+                                >してもらおう
+                            </p>
+                        </template>
+                        <template v-else>
+                            <div v-if="isNotificationPermissionDenied">
+                                <p class="my-2 text-center">
+                                    通知が許可されていません。
+                                </p>
+                                <button
+                                    v-if="!isNotificationPermissionError"
+                                    class="btn-secondary btn-block btn text-white"
+                                    @click="$emit('requestPermission')"
+                                >
+                                    通知を許可
+                                </button>
+                                <p
+                                    v-if="isNotificationPermissionError"
+                                    class="text-center"
+                                >
+                                    ブラウザの設定を変更してください。
+                                </p>
+                            </div>
+                            <template v-if="!fcmToken">
+                                <div class="divider"></div>
+                                <div>
+                                    <p class="mt-5 text-center">
+                                        トークンを読込中です。
+                                    </p>
+                                    <progress
+                                        class="progress progress-secondary w-full"
+                                    ></progress>
+                                </div>
+                            </template>
+                            <template v-else>
+                                <div>
+                                    <h3
+                                        class="break-words break-keep text-sm md:text-base"
+                                    >
+                                        当日分の配信枠のスケージュール時刻が変更を検知した際、警告通知を発信します。（予定変更警告・当日）
+                                    </h3>
+                                    <div class="mx-auto mt-1 mb-6 w-fit">
+                                        <button class="btn-wide btn">
+                                            通知を有効化
+                                        </button>
+                                    </div>
+                                    <h3
+                                        class="break-words break-keep text-sm md:text-base"
+                                    >
+                                        週間予定と異なる時刻を設定された、当日分の配信枠を検知した際、警告通知を発信します。（予定変更疑惑警告・当日）
+                                    </h3>
+                                    <div class="mx-auto mt-1 mb-6 w-fit">
+                                        <button class="btn-wide btn">
+                                            通知を有効化
+                                        </button>
+                                    </div>
+                                    <h3
+                                        class="break-words break-keep text-sm md:text-base"
+                                    >
+                                        当日分の配信枠が立ったことを検知した際、通知を発信します。（配信枠通知・当日）
+                                    </h3>
+                                    <div class="mx-auto mt-1 mb-6 w-fit">
+                                        <button class="btn-wide btn">
+                                            通知を有効化
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+                        </template>
+                    </div>
+                </Modal>
+            </div>
         </div>
         <div class="w-full select-none text-ptr-dark-brown">
             <h1
@@ -33,51 +153,51 @@ defineProps({
                 Today's
             </h1>
         </div>
-            <div class="py-3 xl:py-6 px-2 xl:px-4">
-                <p
-                    class="text-center text-xl"
-                    v-if="Object.keys(today).length === 0"
-                >
-                    ぬるぽ
-                </p>
-                <template v-else>
-                    <div class="relative">
+        <div class="py-3 px-2 xl:py-6 xl:px-4">
+            <p
+                class="text-center text-xl"
+                v-if="Object.keys(today).length === 0"
+            >
+                ぬるぽ
+            </p>
+            <template v-else>
+                <div class="relative">
+                    <div
+                        class="relative box-border grid w-full grid-cols-1 items-stretch justify-around gap-2 py-6 px-0 md:grid-cols-2 2xl:px-4"
+                        ref="rssWrapper"
+                    >
                         <div
-                            class="relative box-border w-full grid grid-cols-1 md:grid-cols-2 items-stretch gap-2 py-6 px-0 2xl:px-4 justify-around"
-                            ref="rssWrapper"
+                            v-for="(item, index) in today"
+                            :key="index"
+                            class="shrink-0 snap-start xl:pr-4"
                         >
-                            <div
-                                v-for="(item, index) in today"
-                                :key="index"
-                                class="shrink-0 snap-start xl:pr-4"
-                            >
-                                <div v-if="item.nostream == true">
-                                    <div
-                                        class="mx-auto flex w-fit flex-col items-end xl:flex-row xl:items-baseline"
-                                    >
-                                        <p class="text-center text-sm xl:text-xl">
-                                            配信予定がありません
-                                        </p>
-                                        <p class="text-xs xl:text-base px-3">NO STREAM</p>
-                                    </div>
-                                    <p class="mt-1 text-center text-xl">
-                                        {{ item.title }}
+                            <div v-if="item.nostream == true">
+                                <div
+                                    class="mx-auto flex w-fit flex-col items-end xl:flex-row xl:items-baseline"
+                                >
+                                    <p class="text-center text-sm xl:text-xl">
+                                        配信予定がありません
+                                    </p>
+                                    <p class="px-3 text-xs xl:text-base">
+                                        NO STREAM
                                     </p>
                                 </div>
-                                <StreamCard
-                                    v-else
-                                    :item="item"
-                                    class="h-full rounded-md shadow-sm shadow-custom-shadow"
-                                ></StreamCard>
+                                <p class="mt-1 text-center text-xl">
+                                    {{ item.title }}
+                                </p>
                             </div>
+                            <StreamCard
+                                v-else
+                                :item="item"
+                                class="h-full rounded-md shadow-sm shadow-custom-shadow"
+                            ></StreamCard>
                         </div>
                     </div>
-                </template>
+                </div>
+            </template>
         </div>
         <div class="w-full select-none text-ptr-dark-brown">
-            <h1
-                class="flex items-center px-6 pt-0 pb-1 text-xl lg:px-12 mt-3"
-            >
+            <h1 class="mt-3 flex items-center px-6 pt-0 pb-1 text-xl lg:px-12">
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 512 512"
@@ -91,46 +211,48 @@ defineProps({
                 Tomorrow's
             </h1>
         </div>
-            <div class="py-3 xl:py-6 px-2 xl:px-4">
-                <p
-                    class="text-center text-xl"
-                    v-if="Object.keys(tomorrow).length === 0"
-                >
-                    ぬるぽ
-                </p>
-                <template v-else>
-                    <div class="relative">
+        <div class="py-3 px-2 xl:py-6 xl:px-4">
+            <p
+                class="text-center text-xl"
+                v-if="Object.keys(tomorrow).length === 0"
+            >
+                ぬるぽ
+            </p>
+            <template v-else>
+                <div class="relative">
+                    <div
+                        class="relative box-border grid w-full grid-cols-1 items-stretch justify-around gap-2 py-6 px-0 md:grid-cols-2 2xl:px-4"
+                        ref="rssWrapper"
+                    >
                         <div
-                            class="relative box-border grid grid-cols-1 md:grid-cols-2 w-full items-stretch gap-2 py-6 px-0 2xl:px-4 justify-around"
-                            ref="rssWrapper"
+                            v-for="(item, index) in tomorrow"
+                            :key="index"
+                            class="shrink-0 snap-start xl:pr-4"
                         >
-                            <div
-                                v-for="(item, index) in tomorrow"
-                                :key="index"
-                                class="shrink-0 snap-start  xl:pr-4"
-                            >
-                                <div v-if="item.nostream == true">
-                                    <div
-                                        class="mx-auto flex w-fit flex-col items-end xl:flex-row xl:items-baseline"
-                                    >
-                                        <p class="text-center text-sm xl:text-xl">
-                                            配信予定がありません
-                                        </p>
-                                        <p class="text-xs xl:text-base px-3">NO STREAM</p>
-                                    </div>
-                                    <p class="mt-1 text-center text-xl">
-                                        {{ item.title }}
+                            <div v-if="item.nostream == true">
+                                <div
+                                    class="mx-auto flex w-fit flex-col items-end xl:flex-row xl:items-baseline"
+                                >
+                                    <p class="text-center text-sm xl:text-xl">
+                                        配信予定がありません
+                                    </p>
+                                    <p class="px-3 text-xs xl:text-base">
+                                        NO STREAM
                                     </p>
                                 </div>
-                                <StreamCard
-                                    v-else
-                                    :item="item"
-                                    class="h-full rounded-md shadow-sm shadow-custom-shadow"
-                                ></StreamCard>
+                                <p class="mt-1 text-center text-xl">
+                                    {{ item.title }}
+                                </p>
                             </div>
+                            <StreamCard
+                                v-else
+                                :item="item"
+                                class="h-full rounded-md shadow-sm shadow-custom-shadow"
+                            ></StreamCard>
                         </div>
                     </div>
-                </template>
-            </div>
+                </div>
+            </template>
+        </div>
     </div>
 </template>

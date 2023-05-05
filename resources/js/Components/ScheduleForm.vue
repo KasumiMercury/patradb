@@ -8,7 +8,6 @@ import PrimaryButton from "@/Components/PrimaryButton.vue";
 import TextInput from "@/Components/TextInput.vue";
 import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
-import { ja } from "date-fns/locale";
 
 const props = defineProps({
     initialForm: Object,
@@ -83,7 +82,6 @@ const changeEndTime = () => {
                 <InputLabel for="startDate" value="Start Date" />
                 <VueDatePicker
                     locale="jp"
-                    :format-locale="ja"
                     timezone="Asia/Tokyo"
                     cancel-text="キャンセル"
                     select-text="OK"
@@ -98,7 +96,6 @@ const changeEndTime = () => {
                 <InputLabel for="startTime" value="Start Time" />
                 <VueDatePicker
                     locale="jp"
-                    :format-locale="ja"
                     timezone="Asia/Tokyo"
                     v-model="startTime"
                     id="startTime"
@@ -111,7 +108,6 @@ const changeEndTime = () => {
                 <InputLabel for="endDate" value="End Date" />
                 <VueDatePicker
                     locale="jp"
-                    :format-locale="ja"
                     timezone="Asia/Tokyo"
                     cancel-text="キャンセル"
                     select-text="OK"
@@ -125,7 +121,6 @@ const changeEndTime = () => {
                 <InputLabel for="endTime" value="End Time" />
                 <VueDatePicker
                     locale="jp"
-                    :format-locale="ja"
                     timezone="Asia/Tokyo"
                     v-model="endTime"
                     id="endTime"

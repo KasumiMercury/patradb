@@ -17,33 +17,22 @@ if (!isServer) {
 }
 
 const checkWindowSize = () => {
-    if (props.forceMenuHide) {
-        minimumWindow();
-    } else {
-        if (window.innerWidth >= 1280) {
-            if (isSideOpen.value === false && innerWidth.value < 1280)
-                isSideOpen.value = true;
+    if (!isServer) {
+        if (props.forceMenuHide) {
+            minimumWindow();
         } else {
-            if (isSideOpen.value === true) minimumWindow();
+            if (window.innerWidth >= 1280) {
+                if (isSideOpen.value === false && innerWidth.value < 1280)
+                    isSideOpen.value = true;
+            } else {
+                if (isSideOpen.value === true) minimumWindow();
+            }
         }
+        innerWidth.value = window.innerWidth;
     }
-    innerWidth.value = window.innerWidth;
 };
 /* Get Device Width End*/
-
-const onKeyDown = (e) => {
-    console.log(e);
-    // keyInputArray.push(e);
-    // if (keyInputArray.length >= 10) {
-    //     keyInputArray = keyInputArray.slice(-10);
-    //     if (String(keyInputArray) === String(command)) {
-    //         console.log("command fire");
-    //     }
-    // }
-};
-
 onMounted(() => {
-    // document.addEventListener('keydown', onKeyDown)
     if (!isServer) {
         innerWidth.value = window.innerWidth;
         window.addEventListener("resize", checkWindowSize);
@@ -53,7 +42,6 @@ onMounted(() => {
     }
 });
 onUnmounted(() => {
-    // document.removeEventListener('keydown', onKeyDown)
     if (!isServer) {
         window.removeEventListener("resize", checkWindowSize);
     }
@@ -77,7 +65,8 @@ watch(
     () => currentUrl.value,
     () => {
         showingNavigationDropdown.value = false;
-        isSideOpen.value = innerWidth.value >= 1280 ? true : false;
+        // isSideOpen.value = innerWidth.value >= 1280 ? true : false;
+        checkWindowSize();
     }
 );
 
@@ -90,9 +79,11 @@ const logout = () => {
     router.post(route("logout"));
 };
 
-router.on("start", (event) => {
-    currentUrl.value = event.detail.visit.url;
-});
+// if(!isServer) {
+//     router.on("start", (event) => {
+//         currentUrl.value = event.detail.visit.url;
+//     });
+// }
 </script>
 <style>
 .bg_gold {
@@ -123,7 +114,7 @@ router.on("start", (event) => {
     top: 0;
 }
 .TopNavBar {
-    border-bottom: 0.5rem solid;
+    border-bottom: 0.2rem solid;
     border-image-source: linear-gradient(
         45deg,
         #b67b03 0%,
@@ -151,7 +142,7 @@ router.on("start", (event) => {
 }
 </style>
 <template>
-    <div class="relative h-full w-full bg-[#ffedf3]">
+    <div class="relative h-full w-full bg-[#ffedf3] font-body">
         <div
             class="absolute top-0 left-0 z-0 min-h-full w-full"
             data-slot="bg-wrapper"
@@ -162,7 +153,7 @@ router.on("start", (event) => {
             <nav class="TopNavBar relative z-40 bg-ptr-dark-brown pt-safe">
                 <!-- Primary Navigation Menu -->
                 <div
-                    class="mx-auto max-w-7xl py-3 px-4 sm:px-6 lg:py-8 lg:px-8"
+                    class="mx-auto max-w-7xl py-0 px-4 sm:px-6 lg:py-2 lg:px-8"
                 >
                     <div
                         class="flex h-16 items-center justify-between lg:mx-auto lg:w-fit"
@@ -234,7 +225,7 @@ router.on("start", (event) => {
             <transition>
                 <div
                     v-if="showingNavigationDropdown"
-                    class="absolute top-24 z-40 w-full bg-ptr-light-pink pt-4 pb-1 lg:hidden"
+                    class="absolute top-16 z-40 w-full bg-ptr-light-pink pt-4 pb-1 lg:hidden"
                 >
                     <!-- Responsive Settings -->
                     <div class="flex items-center px-4">
@@ -248,7 +239,9 @@ router.on("start", (event) => {
                             <ResponsiveNavLink :href="route('register')">
                                 Register
                             </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('login')">
+                            <ResponsiveNavLink
+                                :href="route('transition.login')"
+                            >
                                 Log in
                             </ResponsiveNavLink>
                         </div>
@@ -262,22 +255,22 @@ router.on("start", (event) => {
                             Schedules
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
-                            :href="route('dataview')"
-                            :active="route().current('dataview')"
+                            :href="route('memory.top')"
+                            :active="route().current('memory.top')"
                         >
                             Memories
-                        </ResponsiveNavLink>
-                        <ResponsiveNavLink
-                            :href="route('adddata')"
-                            :active="route().current('adddata')"
-                        >
-                            Launch
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
                             :href="route('chatview')"
                             :active="route().current('chatview')"
                         >
                             Chat
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            :href="route('adddata')"
+                            :active="route().current('adddata')"
+                        >
+                            Launch
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
                             :href="route('toolstop')"
@@ -430,16 +423,55 @@ router.on("start", (event) => {
                                 <div class="px-3">
                                     <div
                                         v-if="$page.props.auth.user"
-                                        class="mx-auto mt-2 mb-4 w-fit select-none text-xl text-ptr-dark-brown"
+                                        class="relative mx-auto mt-6 mb-4 w-fit select-none text-xl text-ptr-dark-brown"
                                     >
                                         {{ $page.props.auth.user.name }}
+                                        <span
+                                            class="absolute right-0 bottom-0 translate-x-full rotate-12 opacity-75"
+                                        >
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                xmlns:xlink="http://www.w3.org/1999/xlink"
+                                                width="16"
+                                                height="16"
+                                                viewBox="0 0 16 16"
+                                            >
+                                                <g class="fill-ptr-dark-brown">
+                                                    <path
+                                                        d="M13.798 14.262c0 3.231-2.339.253-5.294.253c-2.951 0-5.403 2.979-5.403-.253c0-1.509 1.232-3.097 2.09-4.453c.978-1.547 1.685-2.766 3.259-2.766c1.58 0 2.364 1.294 3.345 2.852c.849 1.351 2.003 2.865 2.003 4.367z"
+                                                    ></path>
+                                                    <ellipse
+                                                        cx="5.91"
+                                                        cy="2.881"
+                                                        rx="1.91"
+                                                        ry="2.881"
+                                                    ></ellipse>
+                                                    <ellipse
+                                                        cx="10.936"
+                                                        cy="2.926"
+                                                        rx="1.936"
+                                                        ry="2.926"
+                                                    ></ellipse>
+                                                    <ellipse
+                                                        cx="1.871"
+                                                        cy="7.371"
+                                                        rx="1.885"
+                                                        ry="2.436"
+                                                        transform="rotate(-10.51 1.986 7.435)"
+                                                    ></ellipse>
+                                                    <path
+                                                        d="M12.115 7.305c-.345 1.326.201 2.504 1.214 2.627c1.014.126 2.116-.849 2.463-2.175c.345-1.328-.2-2.506-1.214-2.63c-1.016-.126-2.118.85-2.463 2.178z"
+                                                    ></path>
+                                                </g>
+                                            </svg>
+                                        </span>
                                     </div>
                                     <div
                                         v-else
                                         class="my-4 flex w-full flex-col text-xl text-ptr-dark-pink"
                                     >
                                         <ResponsiveNavLink
-                                            :href="route('login')"
+                                            :href="route('transition.login')"
                                         >
                                             Log in
                                         </ResponsiveNavLink>
@@ -468,8 +500,8 @@ router.on("start", (event) => {
                                         Schedules
                                     </ResponsiveNavLink>
                                     <ResponsiveNavLink
-                                        :href="route('dataview')"
-                                        :active="route().current('dataview')"
+                                        :href="route('memory.top')"
+                                        :active="route().current('memory.top')"
                                     >
                                         <template #icon>
                                             <svg
@@ -484,24 +516,6 @@ router.on("start", (event) => {
                                             </svg>
                                         </template>
                                         Memories
-                                    </ResponsiveNavLink>
-                                    <ResponsiveNavLink
-                                        :href="route('adddata')"
-                                        :active="route().current('adddata')"
-                                    >
-                                        <template #icon>
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                viewBox="0 0 512 512"
-                                                class="mr-2 h-5 w-5"
-                                            >
-                                                <!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                                                <path
-                                                    d="M156.6 384.9L125.7 354c-8.5-8.5-11.5-20.8-7.7-32.2c3-8.9 7-20.5 11.8-33.8L24 288c-8.6 0-16.6-4.6-20.9-12.1s-4.2-16.7 .2-24.1l52.5-88.5c13-21.9 36.5-35.3 61.9-35.3l82.3 0c2.4-4 4.8-7.7 7.2-11.3C289.1-4.1 411.1-8.1 483.9 5.3c11.6 2.1 20.6 11.2 22.8 22.8c13.4 72.9 9.3 194.8-111.4 276.7c-3.5 2.4-7.3 4.8-11.3 7.2v82.3c0 25.4-13.4 49-35.3 61.9l-88.5 52.5c-7.4 4.4-16.6 4.5-24.1 .2s-12.1-12.2-12.1-20.9V380.8c-14.1 4.9-26.4 8.9-35.7 11.9c-11.2 3.6-23.4 .5-31.8-7.8zM384 168a40 40 0 1 0 0-80 40 40 0 1 0 0 80z"
-                                                />
-                                            </svg>
-                                        </template>
-                                        Launch
                                     </ResponsiveNavLink>
                                     <ResponsiveNavLink
                                         :href="route('chatview')"
@@ -520,6 +534,24 @@ router.on("start", (event) => {
                                             </svg>
                                         </template>
                                         Chat
+                                    </ResponsiveNavLink>
+                                    <ResponsiveNavLink
+                                        :href="route('adddata')"
+                                        :active="route().current('adddata')"
+                                    >
+                                        <template #icon>
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                viewBox="0 0 512 512"
+                                                class="mr-2 h-5 w-5"
+                                            >
+                                                <!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                                                <path
+                                                    d="M156.6 384.9L125.7 354c-8.5-8.5-11.5-20.8-7.7-32.2c3-8.9 7-20.5 11.8-33.8L24 288c-8.6 0-16.6-4.6-20.9-12.1s-4.2-16.7 .2-24.1l52.5-88.5c13-21.9 36.5-35.3 61.9-35.3l82.3 0c2.4-4 4.8-7.7 7.2-11.3C289.1-4.1 411.1-8.1 483.9 5.3c11.6 2.1 20.6 11.2 22.8 22.8c13.4 72.9 9.3 194.8-111.4 276.7c-3.5 2.4-7.3 4.8-11.3 7.2v82.3c0 25.4-13.4 49-35.3 61.9l-88.5 52.5c-7.4 4.4-16.6 4.5-24.1 .2s-12.1-12.2-12.1-20.9V380.8c-14.1 4.9-26.4 8.9-35.7 11.9c-11.2 3.6-23.4 .5-31.8-7.8zM384 168a40 40 0 1 0 0-80 40 40 0 1 0 0 80z"
+                                                />
+                                            </svg>
+                                        </template>
+                                        Launch
                                     </ResponsiveNavLink>
                                     <ResponsiveNavLink
                                         :href="route('toolstop')"
@@ -617,8 +649,8 @@ router.on("start", (event) => {
 
                 <div class="z-0 h-full grow">
                     <!-- Page Heading -->
-                    <header class="py-3 px-6">
-                        <div class="mx-auto" data-slot="header"></div>
+                    <header class="customSticky py-3 px-6">
+                        <div class="ml-0" data-slot="header"></div>
                     </header>
 
                     <!-- Page Content -->

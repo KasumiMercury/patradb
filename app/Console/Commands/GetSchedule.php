@@ -35,7 +35,7 @@ class GetSchedule extends Command
         $client = new Google_Client();
         $client->setDeveloperKey(env('GOOGLE_API_GET_INFO_KEY'));
         $youtube = new Google_Service_YouTube($client);
-        
+
         $data = DB::table('videos')->where('status','rss')->get();
         $dataNum = count($data);
         $videoIdArray = [];

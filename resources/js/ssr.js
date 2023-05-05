@@ -6,13 +6,10 @@ import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
 import { ZiggyVue } from "../../vendor/tightenco/ziggy/dist/vue.m";
 import VueCookies from "vue-cookies";
 
-const appName = "Laravel";
-
 createServer((page) =>
     createInertiaApp({
         page,
         render: renderToString,
-        title: (title) => `${title} - ${appName}`,
         resolve: (name) =>
             resolvePageComponent(
                 `./Pages/${name}.vue`,
@@ -25,7 +22,10 @@ createServer((page) =>
                 .use(ZiggyVue, {
                     ...page.props.ziggy,
                     location: new URL(page.props.ziggy.location),
-                });
+                })
+        },
+        progress: {
+            color: "#4B5563",
         },
     })
 );

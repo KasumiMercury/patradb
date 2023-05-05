@@ -5,9 +5,6 @@ import { usePage } from "@inertiajs/vue3";
 const show = ref(true);
 const message = computed(() => usePage().props.flash.message);
 
-console.log(message.value);
-// const message = "Hello World!"
-
 watch(message, async () => {
     show.value = true;
 });

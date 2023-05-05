@@ -2,6 +2,7 @@
 import { Head, Link, usePage } from "@inertiajs/vue3";
 import { ref, onMounted, onUnmounted } from "vue";
 import ScheduleForm from "../Components/ScheduleForm.vue";
+// import AppLayout from "../Layouts/AppLayout.vue";
 
 const today = new Date();
 

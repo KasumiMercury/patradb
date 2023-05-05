@@ -1,7 +1,22 @@
 @import url("https://fonts.googleapis.com/css2?family=Titan+One&display=swap");
 @import url('https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+Antique:wght@300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+Antique:wght@400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lato&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* :root{
+    --primary-100:#d8346e;
+    --primary-200:#ff6b9c;
+    --primary-300:#ffd4ff;
+    --accent-100:#F8BBD0;
+    --accent-200:#935d71;
+    --text-100:#2d2a2d;
+    --text-200:#565256;
+    --bg-100:#ffedf3;
+    --bg-200:#f5e3e9;
+    --bg-300:#ccbbc0;
+} */

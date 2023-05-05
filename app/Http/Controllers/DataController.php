@@ -9,6 +9,8 @@ use DeepL\Translator;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
+use Artisan;
+
 use Google_Client;
 use Google_Service_YouTube;
 require_once base_path().'\vendor\autoload.php';
@@ -67,6 +69,18 @@ class DataController extends Controller
         $send["end"] = $temp["end"];
         $send["free_title"] = $items[0]["snippet"]["title"];
         DB::table('videos')->insert($send);
+
+        $tempChannnel = $items[0]["snippet"]["channelId"];
+        $channelIsNew = DB::table('collaboed')->where('channel_id',$tempChannnel)->doesntExist();
+        if($channelIsNew){
+            $channel["channel_id"] = $tempChannnel;
+            $channel["channel_display"] = $items[0]["snippet"]["channelTitle"];
+            $channel["created_at"] = date('Y-m-d H:i:s');
+            $channel["updated_at"] = date('Y-m-d H:i:s');
+            DB::table('collaboed')->insert($channel);
+        }
+
+        Artisan::call('command:getstatus');
 
         $request->session()->flash('message', '登録が完了しました。ご協力ありがとうございます！');
         return redirect('/');

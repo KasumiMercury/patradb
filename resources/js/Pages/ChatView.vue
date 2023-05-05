@@ -186,7 +186,7 @@ export default {
         </Head>
         <svg>
             <filter id="pixelate" x="0" y="0">
-                <feFlood x="0.3" y="0.3" height="0.1" width="0.1" />
+                <feFlood x="0.3" y="0.3" height="0.2" width="0.2" />
 
                 <feComposite width="0.8" height="0.8" />
 
@@ -245,7 +245,7 @@ export default {
                         class="wood-frame-message wood-frame absolute bottom-3 left-1/2 h-fit w-full max-w-4xl -translate-x-1/2 rounded-xl py-2 px-8 text-white"
                     >
                         <div
-                            class="to-60% relative flex h-fit w-full flex-row rounded-xl bg-gradient-to-b from-[#008100] to-[#004100] py-6 leading-10 tracking-widest after:absolute after:top-0 after:left-0 after:h-full after:w-full after:rounded-xl after:shadow-inner after:shadow-black"
+                            class="to-60% relative flex h-full w-full flex-row rounded-xl bg-gradient-to-b from-[#008100] to-[#004100] py-6 leading-10 tracking-widest after:absolute after:top-0 after:left-0 after:h-full after:w-full after:rounded-xl after:shadow-inner after:shadow-black"
                         >
                             <div
                                 class="text-shadow w-fit grow-0 px-12 font-Zen text-3xl font-light"
@@ -254,9 +254,23 @@ export default {
                             </div>
                             <div class="grow">
                                 <p
+                                    v-if="recentryChat.length > 0"
                                     class="text-shadow h-32 max-w-full font-Zen text-3xl font-light"
                                 >
                                     「{{ recentryChat[0]["message"] }}」
+                                </p>
+                                <p
+                                    v-else
+                                    class="text-shadow h-32 max-w-full font-Zen text-3xl font-light"
+                                >
+                                    「ぬるぽ」
+                                </p>
+                            </div>
+                            <div
+                                class="absolute bottom-0 right-0 h-fit max-w-full"
+                            >
+                                <p class="text-md pr-6 font-bold">
+                                    from：{{ recentryChat[0]["title"] }}
                                 </p>
                             </div>
                         </div>
@@ -264,11 +278,9 @@ export default {
                 </div>
             </div>
         </div>
-        <Teleport to='[data-slot="bg-wrapper"]' v-if="mounted">
-            <div class="checker-wrapper">
-                <div class="checker"></div>
-                <div class="checker"></div>
-            </div>
-        </Teleport>
+        <div class="checker-wrapper absolute top-0 left-0">
+            <div class="checker"></div>
+            <div class="checker"></div>
+        </div>
     </div>
 </template>

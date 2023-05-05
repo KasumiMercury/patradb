@@ -12,6 +12,9 @@ module.exports = {
     ],
 
     theme: {
+        fontFamily: {
+          body: ['Lato', '"Zen Kaku Gothic Antique"','sans-serif'],
+        },
         extend: {
             fontFamily: {
                 sans: ["Figtree", ...defaultTheme.fontFamily.sans],
@@ -19,6 +22,8 @@ module.exports = {
                 Abril: ["Abril Fatface"],
                 Zen: ["Zen Kaku Gothic Antique"],
                 pGothic: ["MS Ｐゴシック"],
+                Lato: ["Lato"],
+                mPlus: ["M PLUS Rounded 1c"],
             },
             borderWidth: {
                 8: "8px",
@@ -70,10 +75,28 @@ module.exports = {
             },
         },
     },
+    daisyui: {
+      themes : [
+        {
+          myTheme: {
+            'primary': '#D8346E',
+            'secondary': '#2d2a2d',
+            'accent': '#F8BBD0',
+            'neutral': '#ffc9e3',
+            'base-100': '#fffafb',
+            'info': '#2196F3',
+            'success': '#4CAF50',
+            'warning': '#FFC107',
+            'error': '#F44336',
+          },
+        },
+    ],
+  },
     plugins: [
         require("@tailwindcss/forms"),
         require("@tailwindcss/typography"),
         require("tailwindcss-safe-area"),
+        require("daisyui"),
         plugin(function ({ addUtilities, addComponents, e, prefix, config }) {
           const newUtilities = {
             ".horizontal-tb": {

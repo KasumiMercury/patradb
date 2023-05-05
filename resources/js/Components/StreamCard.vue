@@ -39,7 +39,7 @@ const formatTime = (input) => {
             class="w-full drag-none"
         />
         <div class="mx-auto w-11/12 overflow-auto">
-            <p class="title-display pt-3 pb-6">{{ item.title }}</p>
+            <p class="pt-3 pb-6 title-display">{{ item.title }}</p>
         </div>
         <a
             v-if="item.video_id"

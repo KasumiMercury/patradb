@@ -14,6 +14,8 @@ use Inertia\Inertia;
 | contains the "web" middleware group. Now create something great!
 |
 */
+/* Authorization */
+Route::get("/transition-login", [App\Http\Controllers\LoginController::class, "index"])->name("transition.login");
 
 /*main routes*/
 Route::get('/',[App\Http\Controllers\ViewController::class, 'TopPage'])->name('toppage');
@@ -21,10 +23,10 @@ Route::get('/',[App\Http\Controllers\ViewController::class, 'TopPage'])->name('t
 Route::prefix('memories')->group(function(){
     Route::get('/',function () {
         return Inertia::render('MemoryTop');
-    })->name('dataview');
+    })->name('memory.top');
     Route::get('search',[App\Http\Controllers\ViewController::class,'CreatePlayer'])->name('memory.search');
     Route::get('videos',[App\Http\Controllers\ViewController::class,'SearchVideo'])->name('memory.videos');
-    Route::get('collabo',[App\Http\Controllers\ViewController::class,'CreatePlayer'])->name('memory.collabo');
+    Route::get('collabo',[App\Http\Controllers\ViewController::class,'SearchCollabo'])->name('memory.collabo');
     Route::get('list',[App\Http\Controllers\ViewController::class,'CreatePlayer'])->name('memory.list');
     Route::get('player',[App\Http\Controllers\ViewController::class,'CreatePlayer'])->name('memory.player');
 });
@@ -37,7 +39,7 @@ Route::prefix('launch')->group(function(){
     Route::get('complete/{id}',[App\Http\Controllers\ViewController::class,'LaunchComplete'])->name('data.launched');
     Route::get('collabo',function(){
         return Inertia::render('RegisterCollabo');
-    })->name('memory.collabo');
+    })->name('create.collabo');
 });
 
 Route::prefix('post')->group(function(){

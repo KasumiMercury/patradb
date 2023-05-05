@@ -1,56 +1,92 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import RssCard from "./RssCard.vue";
-defineProps({
+import "vue3-carousel/dist/carousel.css";
+import { Carousel, Slide, Pagination, Navigation } from "vue3-carousel";
+import { Link, usePage } from "@inertiajs/vue3";
+import Modal from "./Modal.vue";
+const props = defineProps({
     data: Object,
+    isNotificationPermissionDenied: Boolean,
+    isNotificationPermissionError: Boolean,
+    permissionLoading: Boolean,
+    fcmToken: String,
+    isTokenRegisteredUser: Boolean,
 });
+let settings = {
+    autoplay: 4000,
+    snapAlign: "center",
+    transition: 500,
+};
+let breakpoints = {
+    640: {
+        itemsToShow: 1.5,
+        snapAlign: "center",
+    },
+    1024: {
+        itemsToShow: 2.5,
+        snapAlign: "center",
+    },
+};
+if (Object.keys(props.data).length < 2) {
+    settings = {
+        snapAlign: "center",
+    };
+}
+const emits = defineEmits(["requestPermission", "checkToken"]);
 
-const rssWrapper = ref(null);
-const scrollPos = ref(0);
-const scrollRange = ref(0);
-const wrapperWidth = ref(0);
-
-const scrollNext = () => {
-    if (rssWrapper.value) {
-        rssWrapper.value.scrollBy({
-            left: rssWrapper.value.clientWidth,
-            behavior: "smooth",
-        });
+const NotificationModal = ref(false);
+const openModal = () => {
+    if (usePage().props.auth.user) {
+        emits("checkToken");
     }
+    NotificationModal.value = true;
 };
-const scrollPrev = () => {
-    if (rssWrapper.value) {
-        rssWrapper.value.scrollBy({
-            left: -rssWrapper.value.clientWidth,
-            behavior: "smooth",
-        });
-    }
-};
-const getScrollPos = () => {
-    scrollPos.value = rssWrapper.value.scrollLeft;
-    scrollRange.value =
-        rssWrapper.value.scrollWidth - rssWrapper.value.clientWidth;
-};
-const getWrapperWidth = () => {
-    wrapperWidth.value = rssWrapper.value.clientWidth;
-};
-
-onMounted(() => {
-    getWrapperWidth();
-});
-
-defineExpose({
-    getWrapperWidth,
-});
 </script>
+<style deep>
+:root {
+    --vc-clr-primary: #d8346e;
+    --vc-clr-secondary: #ff99cd;
+    --vc-clr-white: #fffafb;
+    --vc-clr-dark: #2d2a2d;
+
+    /* nav */
+    --vc-nav-width: 30px;
+    --vc-nav-height: 30px;
+    --vc-nav-border-radius: 9999px;
+    --vc-nav-color: var(--vc-clr-primary);
+    --vc-nav-color-hover: var(--vc-clr-secondary);
+    --vc-nav-background: var(--vc-clr-white);
+
+    /* Pagination */
+    --vc-pgn-width: 8px;
+    --vc-pgn-height: 8px;
+    --vc-pgn-border-radius: 9999px;
+    --vc-pgn-margin: 4px;
+    --vc-pgn-background-color: var(--vc-clr-secondary);
+    --vc-pgn-active-color: var(--vc-clr-primary);
+}
+.carousel__slide--prev,
+.carousel__slide--next {
+    opacity: 0.7;
+    transform: scale(0.8);
+}
+.carousel__slide--sliding {
+    transition: 0.5s;
+}
+.carousel__next,
+.carousel__prev {
+    border: 1px solid var(--vc-clr-primary);
+}
+</style>
 <template>
     <div
-        class="relative w-full rounded-t-lg rounded-bl-lg rounded-br-3xl bg-ptr-white px-4 pb-4 before:absolute before:top-2 before:left-2 before:-z-10 before:h-full before:w-full before:rounded-t-lg before:rounded-bl-lg before:rounded-br-3xl before:bg-ptr-dark-brown"
+        class="relative w-full rounded-t-lg rounded-br-lg rounded-bl-3xl bg-ptr-white px-4 pb-4 before:absolute before:top-2 before:left-2 before:-z-10 before:h-full before:w-full before:rounded-t-lg before:rounded-br-lg before:rounded-bl-3xl before:bg-ptr-dark-brown"
     >
-        <div class="w-full select-none text-ptr-dark-brown">
-            <h1
-                class="flex items-center px-6 pt-6 pb-3 text-2xl md:px-12 md:pt-12 md:pb-6"
-            >
+        <div
+            class="text-ptr-dark-brown flex w-full flex-row items-center pt-6 pb-3 md:pt-12 md:pb-6"
+        >
+            <h1 class="select-none flex items-center px-6 md:px-12 text-2xl">
                 <svg
                     fill="none"
                     stroke-width="1.5"
@@ -67,56 +103,111 @@ defineExpose({
                 </svg>
                 Upcoming Stream
             </h1>
+            <div class="ml-auto mr-2 w-fit">
+                <button class="btn-primary btn text-white" @click="openModal">
+                    通知設定
+                </button>
+                <Modal
+                    :show="NotificationModal"
+                    @close="NotificationModal = false"
+                >
+                    <div>
+                        <template v-if="!$page.props.auth.user">
+                            <h3 class="my-2 text-center text-lg">
+                                ログインユーザーのみの機能です。
+                            </h3>
+                            <p class="my-3 text-center text-sm">
+                                だまして悪いが、仕様なんでな　<Link
+                                    class="px-1n link-primary link"
+                                    :href="route('transition.login')"
+                                    >ログイン</Link
+                                >してもらおう
+                            </p>
+                        </template>
+                        <template v-else>
+                            <div v-if="isNotificationPermissionDenied">
+                                <p class="my-2 text-center">
+                                    通知が許可されていません。
+                                </p>
+                                <button
+                                    v-if="!isNotificationPermissionError"
+                                    class="btn-secondary btn-block btn text-white"
+                                    @click="$emit('requestPermission')"
+                                >
+                                    通知を許可
+                                </button>
+                                <p
+                                    v-if="isNotificationPermissionError"
+                                    class="text-center"
+                                >
+                                    ブラウザの設定を変更してください。
+                                </p>
+                            </div>
+                            <template v-if="!fcmToken">
+                                <div class="divider"></div>
+                                <div>
+                                    <p class="mt-5 text-center">
+                                        トークンを読込中です。
+                                    </p>
+                                    <progress
+                                        class="progress progress-secondary w-full"
+                                    ></progress>
+                                </div>
+                            </template>
+                            <template v-else>
+                                <div>
+                                    <h3
+                                        class="break-words break-keep text-sm md:text-base"
+                                    >
+                                        配信枠のスケージュール時刻が変更を検知した際、警告通知を発信します。（予定変更警告・当日以外）
+                                    </h3>
+                                    <div class="mx-auto mt-1 mb-6 w-fit">
+                                        <button class="btn-wide btn">
+                                            通知を有効化
+                                        </button>
+                                    </div>
+                                    <h3
+                                        class="break-words break-keep text-sm md:text-base"
+                                    >
+                                        週間予定と異なる時刻を設定された配信枠を検知した際、警告通知を発信します。（予定変更疑惑警告・当日以外）
+                                    </h3>
+                                    <div class="mx-auto mt-1 mb-6 w-fit">
+                                        <button class="btn-wide btn">
+                                            通知を有効化
+                                        </button>
+                                    </div>
+                                    <h3
+                                        class="break-words break-keep text-sm md:text-base"
+                                    >
+                                        配信枠が立ったことを検知した際、通知を発信します。（配信枠通知・当日以外）
+                                    </h3>
+                                    <div class="mx-auto mt-1 mb-6 w-fit">
+                                        <button class="btn-wide btn">
+                                            通知を有効化
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+                        </template>
+                    </div>
+                </Modal>
+            </div>
         </div>
         <div class="relative">
-            <div
-                class="scrolling-touch relative box-border flex w-full snap-x scroll-p-4 flex-row items-stretch gap-2 overflow-x-scroll py-6 px-6 lg:px-12"
-                ref="rssWrapper"
-                @scroll="getScrollPos"
+            <Carousel
+                v-bind="settings"
+                :breakpoints="breakpoints"
+                :wrap-around="Object.keys(props.data).length > 1"
             >
-                <div
-                    v-for="(item, index) in data"
-                    :key="index"
-                    class="shrink-0 basis-full snap-start lg:basis-1/2 lg:pr-4"
-                >
-                    <RssCard
-                        :item="item"
-                        class="h-full rounded-md shadow-sm shadow-custom-shadow"
-                    ></RssCard>
-                </div>
-            </div>
-            <button
-                v-if="scrollPos > wrapperWidth / 3"
-                class="absolute top-1/2 left-0 -translate-y-1/2 -translate-x-1/2 rounded-full bg-ptr-main p-2 text-ptr-white shadow-md shadow-ptr-light-pink"
-                @click="scrollPrev"
-            >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 256 512"
-                    class="h-6 w-6 fill-ptr-white"
-                >
-                    <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                    <path
-                        d="M9.4 278.6c-12.5-12.5-12.5-32.8 0-45.3l128-128c9.2-9.2 22.9-11.9 34.9-6.9s19.8 16.6 19.8 29.6l0 256c0 12.9-7.8 24.6-19.8 29.6s-25.7 2.2-34.9-6.9l-128-128z"
-                    />
-                </svg>
-            </button>
-            <button
-                v-if="scrollPos < scrollRange - wrapperWidth / 3"
-                class="absolute top-1/2 right-0 -translate-y-1/2 translate-x-1/2 rounded-full bg-ptr-main p-2 text-ptr-white shadow-md shadow-ptr-light-pink"
-                @click="scrollNext"
-            >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 256 512"
-                    class="h-6 w-6 fill-ptr-white"
-                >
-                    <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                    <path
-                        d="M246.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 256c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l128-128z"
-                    />
-                </svg>
-            </button>
+                <Slide v-for="(item, index) in props.data" :key="index">
+                    <RssCard :item="item" class="h-full"></RssCard>
+                </Slide>
+
+                <template #addons>
+                    <Navigation />
+                    <Pagination />
+                </template>
+            </Carousel>
         </div>
     </div>
 </template>

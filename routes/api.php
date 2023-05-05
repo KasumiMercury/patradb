@@ -26,3 +26,12 @@ Route::prefix('post')->group(function(){
 Route::prefix('check')->group(function(){
     Route::GET('collabo',[App\Http\Controllers\DataController::class, 'CheckCollabo'])->name('check.collabo');
 });
+
+Route::prefix('notification')->group(function(){
+    Route::POST('user',[App\Http\Controllers\NotificationController::class, 'RegisterUser'])->name('register.notification.user');
+    Route::GET('check',[App\Http\Controllers\NotificationController::class, 'CheckUser'])->name('check.notification.user');
+    Route::POST('get/schedule',[App\Http\Controllers\NotificationController::class, 'GetSchedule'])->name('get.notification.schedule');
+    Route::POST('register/schedule',[App\Http\Controllers\NotificationController::class, 'RegisterSchedule'])->name('register.notification.schedule');
+    Route::POST('remove/schedule',[App\Http\Controllers\NotificationController::class, 'RemoveSchedule'])->name('remove.notification.schedule');
+    Route::POST('clear/schedule',[App\Http\Controllers\NotificationController::class, 'ClearSchedule'])->name('clear.notification.schedule');
+});
