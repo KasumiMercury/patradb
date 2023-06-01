@@ -30,50 +30,58 @@ class GetRss extends Command
      */
     public function handle()
     {
-        $feed='https://www.youtube.com/feeds/videos.xml?channel_id=UCeLzT-7b2PBcunJplmWtoDg';
-        $xml = simplexml_load_file($feed);
-        $obj = get_object_vars($xml);
-        $obj_entry = $obj["entry"];
+        $channel = config('services.channel');
+        $channnelNum = count($channel);
+        for($i = 0; $i < $channnelNum; $i++){
+            $channelId = $channel[array_keys($channel)[$i]];
+            $channnelName = array_keys($channel)[$i];
+            $url = "https://www.youtube.com/feeds/videos.xml?channel_id=".$channelId;
+            $xml = simplexml_load_file($url);
+            $json = json_encode($xml);
+            $array = json_decode($json,TRUE);
+            $video = $array["entry"];
 
-        for($k = 0; $k < count($obj_entry); $k++){
-            $temp = $obj_entry[$k];
-            $tempArray = json_decode(json_encode($temp), true);
-            $sendArray["title"] = $tempArray["title"];
-            $sendArray["video_id"] = str_replace('yt:video:', '', $tempArray["id"]);
-            $sendArray["Channel"] = "Patra";
-            $sendArray["status"] = "rss";
-            $sendArray["creater_hn"] = "admin";
-            $sendArray["creater_show"] = false;
-            $sendArray["created_at"] = date('Y-m-d H:i:s');
-            $sendArray["updated_at"] = date('Y-m-d H:i:s');
-            $sendArray["free_title"] = $tempArray["title"];
+            for($j = 0; $j < count($video); $j++){
+                $title = $video[$j]["title"];
+                $videoId = str_replace('yt:video:', '', $video[$j]["id"]);
+                $channelName = $channnelName;
+                $status = "rss";
+                $created_at = date('Y-m-d H:i:s');
+                $updated_at = date('Y-m-d H:i:s');
+                $free_title = $title;
 
-            if (false !== strpos($tempArray["title"], 'メンバー')) {
-                $sendArray["member"] = true;
-            }elseif(false !== stripos($tempArray["title"], 'member')){
-                $sendArray["member"] = true;
-            }else{
-                $sendArray["member"] = false;
-            }
+                //if include "メンバー" in title, set true to isMember
+                $isMember = false;
+                if(strpos($title,'メンバー') !== false){
+                    $isMember = true;
+                }else if(strpos($title,'member') !== false){
+                    $isMember = true;
+                }
 
-            $existNew = false;
+                $send = [
+                    'title' => $title,
+                    'video_id' => $videoId,
+                    'channel' => $channelName,
+                    'status' => $status,
+                    'created_at' => $created_at,
+                    'updated_at' => $updated_at,
+                    'free_title' => $free_title,
+                    'member' => $isMember,
+                    'creater_hn' => 'admin',
+                ];
 
-            $isNew = DB::table('videos')->where('video_id',$sendArray["video_id"])->doesntExist();
-            if($isNew){
-                DB::table('videos')->insert($sendArray);
-            }else{
-                DB::table('videos')->where('video_id',$sendArray["video_id"])
-                                    ->update([
-                                        'title'=>$sendArray["title"],
-                                        'free_title'=>$sendArray["title"],
-                                        'updated_at'=>$sendArray["updated_at"]
-                                    ]);
-                $existNew = true;
+                //if videoId is not exist in videos table, insert data, else update title, free_title, description, and updated_at
+                $isExist = DB::table('videos')->where('video_id',$videoId)->exists();
+                if($isExist){
+                    DB::table('videos')->where('video_id',$videoId)->update($send);
+                }else{
+                    DB::table('videos')->insert($send);
+                }
             }
         }
-        if($existNew){
-            Artisan::call('command:getschedule');
-        }
+
+        Artisan::call('command:getschedule');
+        Artisan::call('command:getdescription');
         return Command::SUCCESS;
     }
 }

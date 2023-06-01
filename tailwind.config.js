@@ -115,6 +115,12 @@ module.exports = {
             },
             ".title-display":{
               "word-break": "break-word",
+            },
+            ".break-keep":{
+              "word-break": "keep-all",
+              "line-break": "strict",
+              "word-wrap": "break-word",
+              "overflow-wrap": "break-word",
             }
           };
           addUtilities(newUtilities);

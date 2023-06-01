@@ -55,20 +55,29 @@ class getArchivedScheduled extends Command
                 array_push($videoIdArray,$tempVideos["video_id"]);
             }
             $query = join(',',$videoIdArray);
-            $items = $youtube->videos->listvideos("liveStreamingDetails,status",array('id'=>$query));
+            $items = $youtube->videos->listvideos("liveStreamingDetails,snippet",array('id'=>$query));
 
             $itemNum = count($items);
             for($k = 0; $k < $itemNum; $k++){
+                $tempPublished = date('Y-m-d H:i:s', strtotime($items[$k]["snippet"]["publishedAt"]));
+                $tempData = json_decode(json_encode($data[$k],true));
+
                 if(isset($items[$k]["liveStreamingDetails"]["scheduledStartTime"])){
                 $tempTime = date('Y-m-d H:i:s', strtotime($items[$k]["liveStreamingDetails"]["scheduledStartTime"]));
                 $tempChatId = $items[$k]["liveStreamingDetails"]["activeLiveChatId"];
-                $tempData = json_decode(json_encode($data[$k],true));
-                var_dump($tempTime);
                 DB::table('videos')->where('video_id',$tempData->video_id)
                     ->update([
                         'scheduled_at' => $tempTime,
+                        'published_at' => $tempPublished,
                         'updated_at'=> date('Y-m-d H:i:s'),
                         'chat_id'=> $tempChatId
+                    ]);
+                }else{
+                    DB::table('videos')->where('video_id',$tempData->video_id)
+                    ->update([
+                        'scheduled_at' => $tempPublished,
+                        'published_at' => $tempPublished,
+                        'updated_at'=> date('Y-m-d H:i:s'),
                     ]);
                 }
             }

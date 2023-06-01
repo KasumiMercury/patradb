@@ -16,6 +16,23 @@ export default {
     layout: AppLayout,
 };
 </script>
+<style scoped>
+.gradientGlass {
+    background: linear-gradient(
+        to right,
+        rgba(45, 42, 45, 0.4) 5%,
+        rgba(45, 42, 45, 0.2) 10%,
+        rgba(45, 42, 45, 0.2) 90%,
+        rgba(45, 42, 45, 0.4) 95%
+    );
+}
+/* emittion yellow effect with shadow */
+.emit {
+    background-color: #ffec9b;
+    box-shadow: 0 0 10px 1px #f6e05e;
+    animation: emit 1s infinite;
+}
+</style>
 <template>
     <div>
         <Head>
@@ -27,17 +44,28 @@ export default {
 
         <div>
             <div
-                class="mx-auto mt-28 flex max-w-7xl flex-col justify-around gap-20 lg:mt-40 lg:flex-row lg:gap-0"
+                class="gradientGlass relative mx-auto mt-10 flex w-fit flex-col justify-around gap-20 rounded-md px-20 py-20 backdrop-blur-sm backdrop-saturate-[1.2] md:mt-20 md:px-32"
             >
-                <Link as="button" :href="route('memory.search')"
-                    >MemorySearch</Link
+                <Link
+                    as="button"
+                    :href="route('memory.search')"
+                    class="rounded-lg bg-gradient-to-br from-ptr-dark-brown to-ptr-dark-brown/40 px-20 py-5 text-white"
+                    >Memory Search</Link
                 >
-                <Link as="button" :href="route('memory.videos')"
-                    >VideoSearch</Link
+                <Link
+                    as="button"
+                    :href="route('memory.videos')"
+                    class="rounded-lg bg-gradient-to-br from-ptr-dark-brown to-ptr-dark-brown/40 px-20 py-5 text-white"
+                    >Video Search</Link
                 >
-                <Link as="button" :href="route('memory.collabo')"
-                    >CollaboSearch</Link
+                <Link
+                    as="button"
+                    :href="route('memory.collabo')"
+                    class="rounded-lg bg-gradient-to-br from-ptr-dark-brown to-ptr-dark-brown/40 px-20 py-5 text-white"
+                    >Collabo Search</Link
                 >
+                <div class="emit absolute left-0 h-full w-1 rounded-md"></div>
+                <div class="emit absolute right-0 h-full w-1 rounded-md"></div>
             </div>
         </div>
         <MemoryBack

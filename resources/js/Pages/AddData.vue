@@ -31,12 +31,18 @@ export default {
             <div
                 class="mx-auto mt-24 flex max-w-5xl flex-col justify-center gap-12 px-4 pt-4 sm:px-6 lg:px-8"
             >
-                <p
-                    v-if="!$page.props.auth.user"
-                    class="font-bold text-ptr-main"
-                >
-                    以下の機能は現在、ログインユーザーのみ使用可能です。
-                </p>
+                <div v-if="!$page.props.auth.user" class="text-center">
+                    <p class="font-bold text-ptr-main">
+                        以下の機能は現在、ログインユーザーのみ使用可能です。
+                    </p>
+                    <p class="my-3 text-sm">
+                        だまして悪いが、仕様なんでな　<Link
+                            class="px-1n link-primary link"
+                            :href="route('transition.login')"
+                            >ログイン</Link
+                        >してもらおう
+                    </p>
+                </div>
                 <Link
                     as="button"
                     :disabled="!$page.props.auth.user"

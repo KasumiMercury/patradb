@@ -28,19 +28,19 @@ const submit = () => {
     });
 };
 </script>
+<script>
+import AppLayout from "../../Layouts/AppLayout.vue";
 
+export default {
+    layout: AppLayout,
+};
+</script>
 <template>
     <Head title="Log in" />
-
     <AuthenticationCard>
-        <template #logo>
-            <AuthenticationCardLogo />
-        </template>
-
         <div v-if="status" class="mb-4 text-sm font-medium text-green-600">
             {{ status }}
         </div>
-
         <form @submit.prevent="submit">
             <div>
                 <InputLabel for="name" value="name" />
@@ -75,13 +75,12 @@ const submit = () => {
                 </label>
             </div>
 
-            <div class="mt-4 flex items-center justify-end">
+            <div class="mt-8 flex items-center justify-between">
                 <Link
-                    v-if="canResetPassword"
-                    :href="route('password.request')"
+                    :href="route('register')"
                     class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 >
-                    Forgot your password?
+                    Register
                 </Link>
 
                 <PrimaryButton

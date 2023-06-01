@@ -11,21 +11,23 @@ use Inertia\Inertia;
 class ViewController extends Controller
 {
     public function TopPage(){
+        $now = Carbon::now()->toDateTimeString();
         $today = Carbon::today()->toDateTimeString();
-        $todayDay = Carbon::today();
         $tomorrow = Carbon::tomorrow()->toDateTimeString();
         $dayAfterTommorow = Carbon::tomorrow()->addDay()->toDateTimeString();
         $monthDay = Carbon::today()->addMonthNoOverflow();
 
-        $todayStream = DB::table('stream')->where('scheduled_at','>=',$todayDay)->where('scheduled_at','<',$tomorrow)
-                            ->orderBy('scheduled_at')
+        $todayStream = DB::table('stream')
+                            ->where('stream.scheduled_at','>=',$today)->where('stream.scheduled_at','<=',$tomorrow)
+                            ->orderBy('stream.scheduled_at')
+                            ->leftJoin('videos','stream.video_id','=','videos.video_id')
+                            ->select('stream.*','videos.status')
                             ->get();
-        $tomorrowStream = DB::table('stream')->where('scheduled_at','>=',$tomorrow)->where('scheduled_at','<',$dayAfterTommorow)
+        $tomorrowStream = DB::table('stream')->where('scheduled_at','>',$tomorrow)->where('scheduled_at','<',$dayAfterTommorow)
                             ->orderBy('scheduled_at')
                             ->get();
 
         $rssStream = DB::table('videos')->where('status','upcoming')
-                                        ->where('scheduled_at','>=',$today)
                                         ->orderBy('scheduled_at')->get();
 
         $todaySchedule = DB::table('schedules')->where('end_date','>=',$today)->where('start_date','<=',$today)
@@ -34,10 +36,8 @@ class ViewController extends Controller
         $persistentComing = DB::table('persistent')->where('start_date','>=',$today)->orderBy('start_date','desc')->get();
         $persistentSchedule = DB::table('persistent')->where('start_date','<=',$today)->orderBy('start_date','desc')->get();
 
-        $monthSchedule = DB::table('schedules')->where('start_date','>',$today)->where('start_date','<',$monthDay)
+        $monthSchedule = DB::table('schedules')->where('end_date','>=',$today)->where('start_date','<',$monthDay)
                             ->orderBy('end_date')
-                            ->get();
-        $otherSchedule = DB::table('schedules')->Where('start_date','>',$monthDay)->orderBy('end_date')
                             ->get();
 
         return Inertia::render('TopPage', [
@@ -48,14 +48,6 @@ class ViewController extends Controller
             'persistent' => $persistentSchedule,
             'rss' => $rssStream,
             'month' => $monthSchedule,
-            'other' => $otherSchedule,
-        ]);
-    }
-    public function CreateSchedule(){
-        $deepl_key = config('services.deepl.key');
-
-        return Inertia::render('CreateSchedule', [
-            'deepl_key' => $deepl_key,
         ]);
     }
     public function CreatePlayer(Request $request){
@@ -87,29 +79,17 @@ class ViewController extends Controller
         $until = $request->until;
 
         $searchQuery = "";
-        if($excludedWord != null){
-            $tempExcluded = explode(' ',$excludedWord);
-            foreach($tempExcluded as $word){
-                $searchQuery = $searchQuery.' -'.$word;
-            }
+        // set searchQuery by query
+        // if exist requiredWord, add + to searchQuery
+        // if exist excludedWord, add - to searchQuery
+        if($searchWord != null){
+            $searchQuery = $searchWord;
         }
         if($requiredWord != null){
-            $tempWord = "";
-            if($excludedWord != null){
-                $tempWord = $requiredWord;
-            }else if($searchWord != null){
-                $tempWord = $searchWord.' '.$requiredWord;
-            }else{
-                $tempWord = $requiredWord;
-            }
-            $tempRequired = explode(' ',$tempWord);
-            foreach($tempRequired as $word){
-                $searchQuery = $searchQuery.' +'.$word;
-            }
-        }else if($excludedWord == null){
-            $searchQuery = $searchWord;
-        }else{
-            $searchQuery = $searchQuery.' +'.$searchWord;
+            $searchQuery = $searchQuery.' +'.$requiredWord;
+        }
+        if($excludedWord != null){
+            $searchQuery = $searchQuery.' -'.$excludedWord;
         }
 
         $videoList = DB::table('videos')->where('status','archived');
@@ -124,34 +104,69 @@ class ViewController extends Controller
             $videoList = $videoList->where('scheduled_at','>=',$sinceStart);
         }
         if($searchQuery != ""){
-            if($requiredWord != null){
-                $tempSearch = $searchWord.' '.$requiredWord;
-            }else{
-                $tempSearch = $searchWord;
-            }
-                $videoList = $videoList->where(function ($query) use ($searchQuery,$tempSearch) {
-                    $query->whereRaw('MATCH(free_title) AGAINST(? IN BOOLEAN MODE)',[$searchQuery])->orWhere('description','like','%'.$tempSearch.'%');
-                });
-                if($excludedWord != null){
-                    $videoList = $videoList->where('description','not like','%'.$excludedWord.'%');
-                }
+            // if($requiredWord != null){
+            //     $tempSearch = $searchWord.' '.$requiredWord;
+            // }else{
+            //     $tempSearch = $searchWord;
+            // }
+                // $videoList = $videoList->where(function ($query) use ($searchQuery,$tempSearch) {
+                //     $query->whereRaw('MATCH(free_title) AGAINST(? IN BOOLEAN MODE)',[$searchQuery])->orWhere('description','like','%'.$tempSearch.'%');
+                // });
+                // if($excludedWord != null){
+                //     $videoList = $videoList->where('description','not like','%'.$excludedWord.'%');
+                // }
+                $videoList = $videoList
+                                ->where(function ($query) use ($searchQuery) {
+                                    $query->whereRaw("MATCH (free_title) AGAINST (? IN BOOLEAN MODE)", [$searchQuery])
+                                        ->orWhereRaw("MATCH (free_description) AGAINST (? IN BOOLEAN MODE)", [$searchQuery]);
+                                });
         }
-        if($searchOrder != null){
-            if($searchOrder == 'asc'){
-                if($orderBy == null){
-                    $videoList = $videoList->orderBy('id','asc');
-                }else{
+        // if($searchOrder != null){
+        //     if($searchOrder == 'asc'){
+        //         if($orderBy != null){
+        //             $videoList = $videoList->orderBy($orderBy,'asc');
+        //         }else{
+        //             if($searchQuery == null){
+        //                 $videoList = $videoList->orderBy('scheduled_at','asc');
+        //             }
+        //         }
+        //     }else{
+        //         if($orderBy != null){
+        //             $videoList = $videoList->orderBy($orderBy,'desc');
+        //         }else{
+        //             if($searchQuery == null){
+        //                 $videoList = $videoList->orderBy('scheduled_at','desc');
+        //             }
+        //         }
+        //     }
+        // }else{
+        //     if($searchQuery == null){
+        //         $videoList = $videoList->orderBy('scheduled_at','desc');
+        //     }else{
+        //     }
+        // }
+        if($orderBy != null){
+            if($searchOrder != null){
+                if($searchOrder == 'asc'){
                     $videoList = $videoList->orderBy($orderBy,'asc');
-                }
-            }else{
-                if($orderBy == null){
-                    $videoList = $videoList->orderBy('id','desc');
                 }else{
                     $videoList = $videoList->orderBy($orderBy,'desc');
                 }
+            }else{
+                $videoList = $videoList->orderBy($orderBy,'desc');
             }
         }else{
-            if($searchQuery == null){
+            if($searchOrder != null){
+                if($searchOrder == 'asc'){
+                    $videoList = $videoList->orderByRaw("(CASE WHEN MATCH (free_title) AGAINST (?) THEN 1 ELSE 0 END),
+                                                        (CASE WHEN MATCH (free_description) AGAINST (?) THEN 1 ELSE 0 END)",
+                                                        [$searchQuery, $searchQuery]);
+                }else{
+                    $videoList = $videoList->orderByRaw("(CASE WHEN MATCH (free_title) AGAINST (?) THEN 1 ELSE 0 END) DESC,
+                                                        (CASE WHEN MATCH (free_description) AGAINST (?) THEN 1 ELSE 0 END) DESC",
+                                                        [$searchQuery, $searchQuery]);
+                }
+            }else{
                 $videoList = $videoList->orderBy('scheduled_at','desc');
             }
         }

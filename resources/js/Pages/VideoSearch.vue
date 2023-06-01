@@ -283,8 +283,7 @@ export default {
                                 class="rounded-md px-2 py-1"
                                 @click="orderAsc()"
                                 :class="
-                                    queryInput.order == 'asc' ||
-                                    queryInput.order == null
+                                    queryInput.order == 'asc'
                                         ? 'bg-ptr-dark-brown text-ptr-white'
                                         : 'border border-ptr-main'
                                 "
@@ -292,8 +291,7 @@ export default {
                                 <svg
                                     class="h-5 w-5"
                                     :class="
-                                        queryInput.order == 'asc' ||
-                                        queryInput.order == null
+                                        queryInput.order == 'asc'
                                             ? 'fill-ptr-white'
                                             : 'fill-ptr-dark-brown'
                                     "
@@ -311,7 +309,8 @@ export default {
                                 class="rounded-md px-2 py-1"
                                 @click="orderDesk()"
                                 :class="
-                                    queryInput.order === 'desc'
+                                    queryInput.order === 'desc' ||
+                                    queryInput.order == null
                                         ? 'bg-ptr-dark-brown text-ptr-white'
                                         : 'border border-ptr-main'
                                 "
@@ -319,7 +318,8 @@ export default {
                                 <svg
                                     class="h-5 w-5"
                                     :class="
-                                        queryInput.order === 'desc'
+                                        queryInput.order === 'desc' ||
+                                        queryInput.order == null
                                             ? 'fill-ptr-white'
                                             : 'fill-ptr-dark-brown'
                                     "

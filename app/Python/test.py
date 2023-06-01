@@ -1,34 +1,35 @@
 import mysql.connector
+import sys
 import firebase_admin
 from firebase_admin import credentials, messaging
 
-# サービスアカウントキーの読み込み
-cred = credentials.Certificate("app\Python\serviceAccountKey.json")
+# basepath = sys.argv[1]
+# jsonPath = basepath + "/app/Python/serviceAccountKey.json"
+# cred = credentials.Certificate(jsonPath)
 
-# FirebaseAdminの初期化
+cred = credentials.Certificate("app/Python/serviceAccountKey.json")
+
 firebase_admin.initialize_app(cred)
 
-# FCM登録トークン
-registration_token = "ctElv9XeUmfvUPhJhuQ-VS:APA91bEF9x0FkoqgmLkbPYlFVZwGqI31ZOIO7XWULZqtXMOhYuwStxhvj6-gMqaNFTpw-1z3X6CVWu9T67nwegd05K-rBDR6CWFSpCL1cu5qgWf4mrv2UKi1Z65FATSdtEsLQ0Iol9Dl"
+registration_token = "eAj_DVoyeqdWZjI2beuBX3:APA91bEMf42IWR_Bg955FIHaeecwSl9bCzOIQ83drRAeS9hiPwzFrWn1xbs9tl_UIPkVk37bmq1Yhg9ItCy--scYlnSt8jmZ5_9FzSBwOObaKXNwAWAtRfCNk4LgKV_Vak7mVMsclajV"
 
-# メッセージの作成
 message = messaging.Message(
     notification=messaging.Notification(
-        title="Pythonからのメッセージ",
+        title="コマンドメッセージ",
         body="これはテストです。",
     ),
+    # topic="todayNotificationUpcoming",
     token=registration_token,
 )
 
-# メッセージの送信
 response = messaging.send(message)
-print("response:", response)
 
-conn = mysql.connector.connect(
-    host='127.0.0.1',
-    port='3306',
-    user='root',
-    password='0316arayotto',
-    database='ptrdb'
-)
-print(conn.is_connected())
+# conn = mysql.connector.connect(
+#     host='127.0.0.1',
+#     port='3306',
+#     user='root',
+#     password='0316arayotto',
+#     database='ptrdb'
+# )
+# print(conn.is_connected())
+print("Hello World")

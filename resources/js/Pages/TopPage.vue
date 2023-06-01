@@ -11,6 +11,11 @@ import pkg from "lodash";
 import firebase from "../plugins/firebase";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
 import axios from "axios";
+import ikiteteErai from "../Components/ikiteteErai.vue";
+import Modal from "../Components/Modal.vue";
+import TopicTabs from "../Components/TopicTabs.vue";
+
+const isServer = typeof window === "undefined";
 
 const isNotificationPermissionDenied = ref(true);
 const isNotificationPermissionError = ref(false);
@@ -18,7 +23,11 @@ const fcmToken = ref("");
 const isTokenRegisteredUser = ref(false);
 const permissionLoading = ref(false);
 // const analytics = getAnalytics(firebase);
-const messaging = getMessaging(firebase);
+
+let messaging = null;
+if (!isServer) {
+    messaging = getMessaging(firebase);
+}
 
 const checkToken = () => {
     if (fcmToken.value !== "") {
@@ -45,14 +54,13 @@ const checkToken = () => {
                             })
                         )
                         .then((res) => {
-                            console.log(res);
                             if (res.data.isExist) {
-                                console.log("exist");
+                                // console.log("exist");
                                 isTokenRegisteredUser.value = true;
                             }
                         });
                 }
-                // console.log(currentToken);
+                console.log(currentToken);
                 permissionLoading.value = false;
                 isNotificationPermissionDenied.value = false;
             } else {
@@ -71,26 +79,83 @@ const checkToken = () => {
 };
 
 const requestPermission = () => {
-    console.log("Requesting Permission");
+    // console.log("Requesting Permission");
     Notification.requestPermission()
         .then((permission) => {
             if (permission === "granted") {
                 isNotificationPermissionDenied.value = false;
                 isNotificationPermissionError.value = false;
-                console.log("Notification permission granted.");
+                // console.log("Notification permission granted.");
             }
         })
         .catch((err) => {
-            console.log("Error Occured");
+            console.log("Error Occured ", err);
         });
 };
-onMessage(messaging, (payload) => {
-    console.log("Message received. ", payload);
-});
+// onMessage(messaging, (payload) => {
+//     console.log("Message received. ", payload);
+// });
+
+// global notification Modal
+const streamNotionModal = ref(false);
+const registering = ref(false);
+const registeredTopic = ref([]);
+const openStreamNotionModal = () => {
+    checkToken();
+    streamNotionModal.value = true;
+};
+const controllSubscribe = (targetTopic) => {
+    registering.value = true;
+    if (registeredTopic.value.includes(targetTopic)) {
+        axios
+            .post(route("unsubscribe.notification.topic"), {
+                fcmToken: fcmToken.value,
+                topic: targetTopic,
+            })
+            .then((res) => {
+                if (res.data.unsubscribed) {
+                    registering.value = false;
+                    registeredTopic.value = registeredTopic.value.filter(
+                        (item) => item != targetTopic
+                    );
+                }
+            });
+    } else {
+        axios
+            .post(route("subscribe.notification.topic"), {
+                fcmToken: fcmToken.value,
+                topic: targetTopic,
+            })
+            .then((res) => {
+                registering.value = false;
+                // console.log(res.data.subscribed);
+                if (res.data.subscribed) {
+                    registeredTopic.value.push(targetTopic);
+                }
+            });
+    }
+};
+watch(
+    () => fcmToken.value,
+    () => {
+        console.log("token changed");
+        axios
+            .post(route("get.notification.topic"), {
+                fcmToken: fcmToken.value,
+            })
+            .then((res) => {
+                // console.log("get");
+                let topic = res.data.topics;
+                if (topic != null) {
+                    registeredTopic.value = topic;
+                    console.log(registeredTopic.value);
+                }
+            });
+    }
+);
+
 
 const { debounce, chunk, sortedIndexBy, sortedIndex } = pkg;
-
-const isServer = typeof window === "undefined";
 const rssStream = ref();
 
 const mounted = ref(false);
@@ -109,7 +174,7 @@ const WAVE_SCALE2 = (1 / Math.PI) * 0.5;
 const margin = 100;
 const HEIGHT = ref(600);
 
-const cokeTimer = ref();
+const commandTimer = ref();
 const diffY = ref("");
 
 const showScrollBaloon = ref(false);
@@ -128,7 +193,7 @@ const showScrollTop = () => {
     }
 };
 
-const command = [
+const commandConfig = [
     "ArrowUp",
     "ArrowUp",
     "ArrowDown",
@@ -146,17 +211,17 @@ const onKeyDown = (e) => {
     keyInputArray.push(e.code);
     if (keyInputArray.length >= 10) {
         keyInputArray = keyInputArray.slice(-10);
-        if (String(keyInputArray) === String(command)) {
+        if (String(keyInputArray) === String(commandConfig)) {
             console.log("command fire");
-            cokeEffect();
+            commandMethod();
         }
     }
 };
 
-const cokeEffect = () => {
+const commandMethod = () => {
     commandFire.value = true;
-    generateBubbles();
-    cokeTimer.value = setTimeout(() => {
+    // generateBubbles();
+    commandTimer.value = setTimeout(() => {
         commandFire.value = false;
     }, 10000);
 };
@@ -231,7 +296,7 @@ watch(
 );
 
 onUnmounted(() => {
-    clearTimeout(cokeTimer.value);
+    clearTimeout(commandTimer.value);
     document.removeEventListener("keydown", onKeyDown);
     if (!isServer) {
         window.removeEventListener("resize", changeWidth);
@@ -259,27 +324,26 @@ defineProps({
     persistent: Object,
     rss: Object,
     month: Object,
-    other: Object,
 });
 </script>
 <script>
 import AppLayout from "../Layouts/AppLayout.vue";
+import { transition } from "d3";
 
 export default {
     layout: AppLayout,
+    components: { transition },
 };
 </script>
 <style scoped>
 .v-enter-active,
 .v-leave-active {
-    transition: opacity 0.5s ease, transform 0.5s ease;
-    transform: translateX(0);
+    transition: opacity 2s ease;
 }
 
 .v-enter-from,
 .v-leave-to {
     opacity: 0;
-    transform: translateX(-1rem);
 }
 .dobodobo-bg {
     background-color: #ffb6ba;
@@ -331,6 +395,18 @@ export default {
     }
 }
 </style>
+<style deep>
+:root {
+    --vc-nav-width: 30px;
+    --vc-nav-height: 30px;
+    --vc-nav-border-radius: 9999px;
+
+    --vc-pgn-width: 8px;
+    --vc-pgn-height: 8px;
+    --vc-pgn-border-radius: 9999px;
+    --vc-pgn-margin: 4px;
+}
+</style>
 <template>
     <div>
         <Head>
@@ -339,6 +415,7 @@ export default {
         <Teleport to='[data-slot="header"]' v-if="mounted">
             <p class="text-xs font-semibold text-gray-800">Schedule</p>
         </Teleport>
+        <ikiteteErai :show="commandFire"></ikiteteErai>
         <div class="px-7 pt-12 pb-40 xl:px-24">
             <Banner />
             <div class="ml-0 mr-auto w-full max-w-7xl lg:w-2/3">
@@ -362,7 +439,6 @@ export default {
             <div class="mr-0 ml-auto mt-12 w-full max-w-7xl lg:mt-24 lg:w-2/3">
                 <MonthlySchedule
                     :monthData="month"
-                    :otherData="other"
                     class="rounded-br-lg rounded-bl-3xl before:left-2 before:rounded-bl-3xl before:rounded-br-lg"
                 />
             </div>
@@ -383,7 +459,7 @@ export default {
                     :fcmToken="fcmToken"
                     :isTokenRegisteredUser="isTokenRegisteredUser"
                     @requestPermission="requestPermission"
-                    @checkToken="checkToken"
+                    @openStreamNotionModal="openStreamNotionModal"
                 />
             </div>
             <div class="mt-12 mr-0 ml-auto w-full max-w-7xl lg:mt-24 lg:w-2/3">
@@ -406,24 +482,9 @@ export default {
         </div>
         <Teleport to='[data-slot="bg-wrapper"]' v-if="mounted">
             <div
-                class="liquid-bg fixed top-0 left-0 z-[-10] h-full w-full overflow-hidden"
+                class="liquid-bg dobodobo-bg fixed top-0 left-0 z-[-10] h-full w-full overflow-hidden"
                 ref="svgWrapper"
-                :class="commandFire ? 'coke-bg' : 'dobodobo-bg'"
             >
-                <div class="container" v-if="commandFire">
-                    <div
-                        class="bubble"
-                        v-for="(bubble, index) in bubbles"
-                        :key="index"
-                        :style="{
-                            left: bubble.left + '%',
-                            animationDelay: bubble.delay + 's',
-                            width: bubble.size + 'px',
-                            height: bubble.size + 'px',
-                        }"
-                    ></div>
-                </div>
-
                 <div class="relative h-full w-full">
                     <div
                         class="absolute top-0 left-0 h-2/5 w-full bg-[#f7ea84]"
@@ -449,5 +510,71 @@ export default {
             @scrollTop="scrollTop"
             class="fixed bottom-5 right-0 mb-12 lg:right-5 lg:mb-0"
         ></balloonRainbow>
+        <Modal :show="streamNotionModal" @close="streamNotionModal = false">
+            <div>
+                <template v-if="!$page.props.auth.user">
+                    <h3 class="my-2 text-center text-lg">
+                        ログインユーザーのみの機能です。
+                    </h3>
+                    <p class="my-3 text-center text-sm">
+                        だまして悪いが、仕様なんでな　<Link
+                            class="px-1n link-primary link"
+                            :href="route('transition.login')"
+                            >ログイン</Link
+                        >してもらおう
+                    </p>
+                </template>
+                <template v-else>
+                    <div v-if="isNotificationPermissionDenied">
+                        <p class="my-2 text-center">
+                            通知が許可されていません。
+                        </p>
+                        <button
+                            v-if="!isNotificationPermissionError"
+                            class="btn-secondary btn-block btn text-white"
+                            @click="$emit('requestPermission')"
+                        >
+                            通知を許可
+                        </button>
+                        <p
+                            v-if="isNotificationPermissionError"
+                            class="text-center"
+                        >
+                            ブラウザの設定を変更してください。
+                        </p>
+                    </div>
+                    <template v-if="!fcmToken">
+                        <div class="divider"></div>
+                        <div>
+                            <p class="mt-5 text-center">
+                                トークンを読込中です。
+                            </p>
+                            <progress
+                                class="progress progress-secondary w-full"
+                            ></progress>
+                        </div>
+                    </template>
+                    <template v-else>
+                        <div class="flex flex-col gap-4 items-end w-fit mx-auto">
+                            <TopicTabs :registered="registeredTopic.find(value => value.match(/ChangeTime$/g))">開始時刻変更警告：</TopicTabs>
+                            <TopicTabs :registered="registeredTopic.find(value => value.match(/DifferentTime$/g))">スケジュール外警告：</TopicTabs>
+                            <TopicTabs :registered="registeredTopic.find(value => value.match(/NotificationUpcoming$/g))">配信枠設置通知：</TopicTabs>
+                        </div>
+                    </template>
+                </template>
+                <div
+                    class="absolute top-0 left-0 h-full w-full bg-ptr-dark-brown/80"
+                    v-if="registering"
+                >
+                    <div class="relative h-full w-full">
+                        <p
+                            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-xl text-ptr-pink"
+                        >
+                            変更を適用しています。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </Modal>
     </div>
 </template>

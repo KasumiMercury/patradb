@@ -630,6 +630,7 @@ const burshSubSelection = (event) => {
 };
 // progress display
 const updateProgress = () => {
+    console.log(props.currentTime);
     let t = d3.transition().duration(100);
     progressBar.transition(t).attr("width", xScaleZoom(props.currentTime));
     updateCurrentAxis();

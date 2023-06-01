@@ -35,4 +35,10 @@ return [
         'key' => env('DEEPL_KEY'),
     ],
 
+    'python' => env('PYTHON_PATH'),
+
+    'channel' => [
+        'PatraMain' => 'UCeLzT-7b2PBcunJplmWtoDg',
+        'PatraSabu' => 'UC1tBdWwNOsdMcO904N7eiWA',
+    ]
 ];

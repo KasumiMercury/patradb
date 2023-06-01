@@ -19,6 +19,12 @@ Route::get("/transition-login", [App\Http\Controllers\LoginController::class, "i
 
 /*main routes*/
 Route::get('/',[App\Http\Controllers\ViewController::class, 'TopPage'])->name('toppage');
+Route::get('/privacypolicy',function(){
+    return Inertia::render('PrivacyPolicy');
+})->name('privacypolicy');
+Route::get('/sitepolicy',function(){
+    return Inertia::render('SitePolicy');
+})->name('sitepolicy');
 
 Route::prefix('memories')->group(function(){
     Route::get('/',function () {
@@ -33,7 +39,7 @@ Route::prefix('memories')->group(function(){
 
 Route::prefix('launch')->group(function(){
     Route::get('/',function () {
-        return Inertia::render('AddData');
+        return Inertia::render('LaunchTop');
     })->name('adddata');
     Route::get('player',[App\Http\Controllers\ViewController::class,'CreatePlayer'])->name('create.player');
     Route::get('complete/{id}',[App\Http\Controllers\ViewController::class,'LaunchComplete'])->name('data.launched');
@@ -54,9 +60,22 @@ Route::get('tools',function () {
 /*main routes end*/
 
 Route::prefix('create')->group(function(){
-    Route::get('schedule',function () {
+    Route::get('schedule',function(){
         return Inertia::render('CreateSchedule');
-    })->name('create.schedule');
+    })->middleware('auth.guard')->name('create.schedule');
+    Route::get('stream',function () {
+        return Inertia::render('CreateStream');
+    })->name('create.stream');
+});
+
+// admin only routes group with AdminGuard middleware
+Route::prefix('admin')->middleware('auth.admin')->group(function(){
+    Route::get('/',function () {
+        return Inertia::render('TopPage');
+    })->name('admin.top');
+    Route::get('schedule',function () {
+        return Inertia::render('AdminSchedule');
+    })->name('admin.schedule');
 });
 
 Route::middleware([
@@ -65,6 +84,6 @@ Route::middleware([
     'verified',
 ])->group(function () {
     Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
+        redirect()->route('toppage');
     })->name('dashboard');
 });

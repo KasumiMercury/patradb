@@ -75,7 +75,7 @@ class getchat extends Command
                     }
                 }
             }
-            print_r($newMessage);
+            // print_r($newMessage);
             DB::table('chats')->insert($newMessage);
         }
 

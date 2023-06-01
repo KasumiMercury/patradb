@@ -8,7 +8,7 @@ defineProps({
 
 const format = (input) => {
     const day = dayjs(input);
-    return day.format("M/DD HH:mm");
+    return day.format("MM/DD HH:mm");
 };
 const formatDay = (input) => {
     const day = dayjs(input);
@@ -17,6 +17,10 @@ const formatDay = (input) => {
 const formatTime = (input) => {
     const day = dayjs(input);
     return day.format("HH:mm");
+};
+
+const jumpToYoutube = (video_id) => {
+    window.open("https://www.youtube.com/watch?v=" + video_id, "_blank");
 };
 </script>
 <template>
@@ -32,16 +36,26 @@ const formatTime = (input) => {
                         '/maxresdefault.jpg'
                     "
                     alt="youtube thumbnail image for {{ item.title }}"
-                    class="w-full drag-none"
+                    class="w-full cursor-pointer drag-none"
+                    width="1280"
+                    height="720"
+                    @click="jumpToYoutube(item.video_id)"
                 />
             </figure>
-            <div class="card-body text-left">
+            <div class="card-body cursor-grab text-left">
                 <h2 class="card-title">{{ format(item.scheduled_at) }}</h2>
                 <p class="break-words pt-3 pb-6 title-display">
                     {{ item.title }}
                 </p>
                 <div class="card-actions justify-end">
-                    <div class="badge-outline badge badge-lg gap-2">
+                    <a
+                        class="badge-outline badge badge-lg gap-2"
+                        :href="
+                            'https://www.youtube.com/watch?v=' + item.video_id
+                        "
+                        target="_blank"
+                        rel="noopener"
+                    >
                         <svg
                             class="h-3 w-3"
                             xmlns="http://www.w3.org/2000/svg"
@@ -53,15 +67,9 @@ const formatTime = (input) => {
                             />
                         </svg>
                         YouTube
-                    </div>
+                    </a>
                 </div>
             </div>
-            <a
-                :href="'https://www.youtube.com/watch?v=' + item.video_id"
-                class="absolute top-0 left-0 h-full w-full"
-                target="_blank"
-                rel="noopener"
-            ></a>
         </div>
     </div>
 </template>

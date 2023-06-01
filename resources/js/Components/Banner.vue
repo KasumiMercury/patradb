@@ -20,7 +20,7 @@ watch(message, async () => {
                 <div class="flex flex-wrap items-center justify-between">
                     <div class="flex min-w-0 flex-1 items-center">
                         <p
-                            class="ml-3 break-keep text-sm font-medium text-white"
+                            class="ml-3 text-sm font-medium text-white break-keep"
                         >
                             {{ message }}
                         </p>

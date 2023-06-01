@@ -35,7 +35,7 @@ class getdescription extends Command
         $client = new Google_Client();
         $client->setDeveloperKey(env('GOOGLE_API_GET_INFO_KEY'));
         $youtube = new Google_Service_YouTube($client);
-        
+
         $data = DB::table('videos')->where('description',null)->get();
         $dataNum = count($data);
 
@@ -50,10 +50,10 @@ class getdescription extends Command
             $tempData = json_decode(json_encode($data[$i]),true);
             array_push($videoIdArray,$tempData["video_id"]);
         }
-        
+
         $query = join(',',$videoIdArray);
         $items = $youtube->videos->listvideos("snippet",array('id'=>$query));
-        
+
         $itemNum = count($items);
         for($k = 0; $k < $itemNum; $k++){
             $tempDescription = $items[$k]["snippet"]["description"];
@@ -61,10 +61,11 @@ class getdescription extends Command
             DB::table('videos')->where('video_id',$items[$k]["id"])
                                 ->update([
                                     'description' => $tempDescription,
+                                    'free_description' => $tempDescription,
                                     'updated_at' => date('Y-m-d H:i:s'),
                                 ]);
         }
-        
+
         return Command::SUCCESS;
     }
 }

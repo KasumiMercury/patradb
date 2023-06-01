@@ -54,4 +54,37 @@ class NotificationController extends Controller
         DB::table('alert_schedules')->where('token', $temp["fcmToken"])->delete();
         return response()->json(['cleared' => true]);
     }
+    public function GetTopic(Request $request){
+        $temp = $request->all();
+        $result = DB::table('fcm_subscribes')->where('token', $temp["fcmToken"])->get();
+        $data = $result->toArray();
+        $topics = array_column( $data, 'topic' );
+        return response()->json(['topics' => $topics]);
+    }
+    public function subscribeTopic(Request $request)
+    {
+        $topic = $request->input('topic');
+        $token = $request->input('fcmToken');
+
+        $pythonPath = config('services.python');
+        $scriptPath =  "../app/Python/";
+        $command = $pythonPath." ".$scriptPath."subscribe.py ".$topic." ".$token;
+        exec($command, $output);
+
+        DB::table('fcm_subscribes')->insert(['token' => $token, 'topic' => $topic, 'created_at' => date('Y-m-d H:i:s'), 'updated_at' => date('Y-m-d H:i:s')]);
+        return response()->json(['subscribed' => true]);
+    }
+    public function unSubscribeTopic(Request $request)
+    {
+        $topic = $request->input('topic');
+        $token = $request->input('fcmToken');
+
+        $pythonPath = config('services.python');
+        $scriptPath =  "../app/Python/";
+        $command = $pythonPath." ".$scriptPath."unsubscribe.py ".$topic." ".$token;
+        exec($command, $output);
+
+        DB::table('fcm_subscribes')->where('token', $token)->where('topic', $topic)->delete();
+        return response()->json(['unsubscribed' => true]);
+    }
 }

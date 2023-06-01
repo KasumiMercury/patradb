@@ -3,23 +3,14 @@ import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import { Link, usePage } from "@inertiajs/vue3";
 import StreamCard from "./StreamCard.vue";
 import Modal from "./Modal.vue";
-defineProps({
+const props = defineProps({
     today: Object,
     tomorrow: Object,
-    isNotificationPermissionDenied: Boolean,
-    isNotificationPermissionError: Boolean,
-    permissionLoading: Boolean,
-    fcmToken: String,
-    isTokenRegisteredUser: Boolean,
 });
-const emits = defineEmits(["requestPermission", "checkToken"]);
+const emits = defineEmits(["openStreamNotionModal"]);
 
-const NotificationModal = ref(false);
 const openModal = () => {
-    if (usePage().props.auth.user) {
-        emits("checkToken");
-    }
-    NotificationModal.value = true;
+    emits("openStreamNotionModal");
 };
 </script>
 <template>
@@ -27,9 +18,9 @@ const openModal = () => {
         class="relative rounded-t-lg rounded-bl-lg rounded-br-3xl bg-ptr-white px-4 pb-4 before:absolute before:top-2 before:left-2 before:-z-10 before:h-full before:w-full before:rounded-t-lg before:rounded-br-3xl before:rounded-bl-lg before:bg-yellow-500"
     >
         <div
-            class="text-ptr-dark-brown flex w-full flex-row items-center pt-6 pb-3 md:pt-12 md:pb-6"
+            class="flex w-full flex-col items-center pt-6 pb-3 text-ptr-dark-brown md:flex-row md:pt-12 md:pb-6"
         >
-            <h1 class="select-none flex items-center text-2xl md:px-12 ">
+            <h1 class="flex select-none items-center text-2xl md:px-12">
                 <svg
                     fill="none"
                     stroke-width="1.5"
@@ -46,94 +37,13 @@ const openModal = () => {
                 </svg>
                 Streaming Schedules
             </h1>
-            <div class="ml-auto mr-2 w-fit">
-                <button class="btn-primary btn text-white" @click="openModal">
+            <div class="my-2 ml-auto mr-2 w-fit md:my-0">
+                <button
+                    class="btn-primary btn-sm btn text-white md:btn-md"
+                    @click="openModal"
+                >
                     通知設定
                 </button>
-                <Modal
-                    :show="NotificationModal"
-                    @close="NotificationModal = false"
-                >
-                    <div>
-                        <template v-if="!$page.props.auth.user">
-                            <h3 class="my-2 text-center text-lg">
-                                ログインユーザーのみの機能です。
-                            </h3>
-                            <p class="my-3 text-center text-sm">
-                                だまして悪いが、仕様なんでな　<Link
-                                    class="px-1n link-primary link"
-                                    :href="route('transition.login')"
-                                    >ログイン</Link
-                                >してもらおう
-                            </p>
-                        </template>
-                        <template v-else>
-                            <div v-if="isNotificationPermissionDenied">
-                                <p class="my-2 text-center">
-                                    通知が許可されていません。
-                                </p>
-                                <button
-                                    v-if="!isNotificationPermissionError"
-                                    class="btn-secondary btn-block btn text-white"
-                                    @click="$emit('requestPermission')"
-                                >
-                                    通知を許可
-                                </button>
-                                <p
-                                    v-if="isNotificationPermissionError"
-                                    class="text-center"
-                                >
-                                    ブラウザの設定を変更してください。
-                                </p>
-                            </div>
-                            <template v-if="!fcmToken">
-                                <div class="divider"></div>
-                                <div>
-                                    <p class="mt-5 text-center">
-                                        トークンを読込中です。
-                                    </p>
-                                    <progress
-                                        class="progress progress-secondary w-full"
-                                    ></progress>
-                                </div>
-                            </template>
-                            <template v-else>
-                                <div>
-                                    <h3
-                                        class="break-words break-keep text-sm md:text-base"
-                                    >
-                                        当日分の配信枠のスケージュール時刻が変更を検知した際、警告通知を発信します。（予定変更警告・当日）
-                                    </h3>
-                                    <div class="mx-auto mt-1 mb-6 w-fit">
-                                        <button class="btn-wide btn">
-                                            通知を有効化
-                                        </button>
-                                    </div>
-                                    <h3
-                                        class="break-words break-keep text-sm md:text-base"
-                                    >
-                                        週間予定と異なる時刻を設定された、当日分の配信枠を検知した際、警告通知を発信します。（予定変更疑惑警告・当日）
-                                    </h3>
-                                    <div class="mx-auto mt-1 mb-6 w-fit">
-                                        <button class="btn-wide btn">
-                                            通知を有効化
-                                        </button>
-                                    </div>
-                                    <h3
-                                        class="break-words break-keep text-sm md:text-base"
-                                    >
-                                        当日分の配信枠が立ったことを検知した際、通知を発信します。（配信枠通知・当日）
-                                    </h3>
-                                    <div class="mx-auto mt-1 mb-6 w-fit">
-                                        <button class="btn-wide btn">
-                                            通知を有効化
-                                        </button>
-                                    </div>
-                                </div>
-                            </template>
-                        </template>
-                    </div>
-                </Modal>
             </div>
         </div>
         <div class="w-full select-none text-ptr-dark-brown">
@@ -163,7 +73,7 @@ const openModal = () => {
             <template v-else>
                 <div class="relative">
                     <div
-                        class="relative box-border grid w-full grid-cols-1 items-stretch justify-around gap-2 py-6 px-0 md:grid-cols-2 2xl:px-4"
+                        class="relative box-border grid w-full grid-cols-1 items-stretch justify-around gap-x-2 gap-y-4 py-6 px-0 md:grid-cols-2 2xl:px-4"
                         ref="rssWrapper"
                     >
                         <div

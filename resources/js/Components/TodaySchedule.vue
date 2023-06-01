@@ -6,7 +6,21 @@ import { ref, watch } from "vue";
 import { Link } from "@inertiajs/vue3";
 import pkg from "lodash";
 import axios from "axios";
+import "vue3-carousel/dist/carousel.css";
+import { Carousel, Slide, Pagination, Navigation } from "vue3-carousel";
 const { debounce, chunk, sortedIndexBy, sortedIndex } = pkg;
+
+let settings = {
+    autoplay: 4000,
+    snapAlign: "start",
+    transition: 500,
+};
+let breakpoints = {
+    768: {
+        itemsToShow: 2,
+        snapAlign: "start",
+    },
+};
 
 const props = defineProps({
     data: Object,
@@ -107,13 +121,11 @@ watch(
             })
             .then((res) => {
                 let schedules = res.data.schedules;
-                console.log(schedules);
                 registeredTime.value = schedules;
             });
     }
 );
 </script>
-
 <template>
     <div
         class="relative rounded-t-lg rounded-bl-lg rounded-br-3xl bg-ptr-white px-4 pb-4 before:absolute before:top-2 before:left-2 before:-z-10 before:h-full before:w-full before:rounded-t-lg before:rounded-bl-lg before:rounded-br-3xl before:bg-cyan-500"
@@ -135,6 +147,7 @@ watch(
                 In Progress
             </h1>
         </div>
+
         <div class="w-full pb-4 lg:px-4">
             <div
                 class="flex w-full flex-col items-stretch justify-center 2xl:flex-row 2xl:flex-wrap"
@@ -149,7 +162,7 @@ watch(
                         class="flex h-full w-full flex-col justify-start rounded-md shadow shadow-custom-shadow md:flex-row"
                     >
                         <div
-                            class="mr-2 flex w-full flex-row items-baseline justify-center gap-2 rounded-t-md py-3 px-4 text-white md:w-16 md:flex-col md:items-center md:gap-0 md:rounded-l-md md:rounded-tr-none lg:mr-4 lg:w-20"
+                            class="mr-2 flex w-full flex-row items-baseline justify-center gap-2 rounded-t-md py-3 px-4 text-white md:w-20 md:flex-col md:items-center md:gap-0 md:rounded-l-md md:rounded-tr-none lg:mr-4"
                             :style="
                                 'background-color:' +
                                 cols(index / Object.keys(props.data).length) +
@@ -171,6 +184,9 @@ watch(
                     </div>
                 </div>
             </div>
+        </div>
+        <h3 class="whitespace-nowrap px-6 text-lg md:px-12">Permanently</h3>
+        <div class="w-full pb-4 lg:px-4">
             <div
                 class="items flex w-full flex-col items-stretch justify-center 2xl:flex-row 2xl:flex-wrap"
             >
@@ -184,36 +200,19 @@ watch(
                         class="flex h-full min-h-[88px] w-full flex-col justify-start rounded-md px-0 shadow shadow-custom-shadow md:flex-row"
                     >
                         <div
-                            class="flex w-full flex-col items-center rounded-t-md bg-ptr-dark-brown py-3 px-4 text-white md:mr-4 md:w-16 md:rounded-l-md md:rounded-tr-none lg:w-20"
+                            class="flex w-full flex-col items-center rounded-t-md bg-ptr-dark-brown py-3 px-4 text-white md:mr-4 md:w-20 md:rounded-l-md md:rounded-tr-none"
                         >
-                            <p class="whitespace-nowrap text-xs">Permanent</p>
-                            <p class="text-md whitespace-nowrap lg:text-xl">
-                                {{ formatDay(data["start_date"]) }}
-                            </p>
-                            <p class="whitespace-nowrap text-sm lg:text-lg">
-                                {{ formatTime(data["start_date"]) }}
-                            </p>
-                        </div>
-                        <div class="py-2 px-4">
-                            <p class="text-md title-display lg:text-xl">
-                                {{ data["event_title"] }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                <div
-                    v-for="(data, index) in props.persistent"
-                    :key="index"
-                    class="my-2 mx-auto w-full px-2 lg:my-4 2xl:w-1/2"
-                    :class="index % 2 === 0 ? 'ml-0 mr-auto' : 'mr-0 ml-auto'"
-                >
-                    <div
-                        class="flex h-full min-h-[88px] w-full flex-col justify-start rounded-md px-0 shadow shadow-custom-shadow md:flex-row"
-                    >
-                        <div
-                            class="flex w-full flex-col items-center rounded-t-md bg-ptr-dark-brown py-3 px-4 text-white md:mr-4 md:w-16 md:rounded-l-md md:rounded-tr-none lg:w-20"
-                        >
-                            <p class="whitespace-nowrap text-xs">Permanent</p>
+                            <p class="whitespace-nowrap text-xs">Permanently</p>
+                            <div
+                                class="flex flex-row items-baseline gap-x-2 md:flex-col"
+                            >
+                                <p class="text-md whitespace-nowrap lg:text-xl">
+                                    {{ formatDay(data["start_date"]) }}
+                                </p>
+                                <p class="whitespace-nowrap text-sm lg:text-lg">
+                                    {{ formatTime(data["start_date"]) }}
+                                </p>
+                            </div>
                         </div>
                         <div class="py-2 px-4">
                             <p class="text-md title-display lg:text-xl">
@@ -224,6 +223,37 @@ watch(
                 </div>
             </div>
         </div>
+
+        <div class="w-full pb-4 lg:px-4">
+            <Carousel
+                v-bind="settings"
+                :breakpoints="breakpoints"
+                :wrap-around="Object.keys(props.persistent).length > 1"
+                class="w-full"
+            >
+                <Slide v-for="(data, index) in props.persistent" :key="index">
+                    <div class="my-2 h-full min-h-[88px] w-full py-2 px-2">
+                        <div
+                            class="flex h-full w-full flex-col justify-start rounded-md px-0 shadow shadow-custom-shadow md:flex-row"
+                        >
+                            <div class="max-w-full py-2 px-4">
+                                <p
+                                    class="text-md text-left title-display lg:text-xl"
+                                >
+                                    {{ data["event_title"] }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </Slide>
+
+                <template #addons>
+                    <Pagination />
+                </template>
+            </Carousel>
+        </div>
+
+        <!-- Notification Modal -->
         <div class="ml-auto mt-4 mr-2 w-fit">
             <button class="btn-primary btn text-white" @click="openModal">
                 通知設定
@@ -271,11 +301,13 @@ watch(
                                     <p class="text-sm md:text-base">
                                         設定を変更するにはログインする必要があります。
                                     </p>
-                                    <Link
-                                        class="btn-wide btn my-2"
-                                        :href="route('transition.login')"
-                                        >ログイン</Link
-                                    >
+                                    <p class="my-4 text-center text-sm">
+                                        だまして悪いが、仕様なんでな　<Link
+                                            class="px-1n link-primary link"
+                                            :href="route('transition.login')"
+                                            >ログイン</Link
+                                        >してもらおう
+                                    </p>
                                 </div>
                             </template>
                             <template v-else>
@@ -283,13 +315,24 @@ watch(
                                     <h3
                                         class="break-words text-center text-sm md:text-base"
                                     >
-                                        12:00（JST）に、当日締め切りの予定がある際、プッシュ通知で警告します。
+                                        8:00（JST）に、当日締め切りの予定がある際、プッシュ通知で警告します。
                                     </h3>
-                                    <button
-                                        class="btn-primary btn-wide btn my-4 text-white"
-                                    >
-                                        通知を有効化
-                                    </button>
+                                    <template v-if="registeredTime.includes(8)">
+                                        <button
+                                            class="btn-primary btn-wide btn my-4 text-white"
+                                            @click="controllTime(8)"
+                                        >
+                                            通知を有効化
+                                        </button>
+                                    </template>
+                                    <template v-else>
+                                        <button
+                                            class="btn-secondary btn-wide btn my-4 text-white"
+                                            @click="controllTime(8)"
+                                        >
+                                            通知を有効化
+                                        </button>
+                                    </template>
                                 </div>
                                 <div class="divider"></div>
                                 <div class="collapse-arrow collapse">
@@ -308,7 +351,7 @@ watch(
                                                 class="absolute z-10 h-full w-full rounded-md bg-ptr-dark-brown/80"
                                             >
                                                 <p
-                                                    class="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 break-keep text-xs text-ptr-light-pink md:text-base"
+                                                    class="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 text-xs text-ptr-light-pink break-keep md:text-base"
                                                 >
                                                     ログインユーザーのみの機能です。
                                                 </p>
@@ -349,7 +392,7 @@ watch(
                         </template>
                         <template v-else>
                             <h3
-                                class="break-words break-keep text-center text-sm md:text-base"
+                                class="break-words text-center text-sm break-keep md:text-base"
                             >
                                 指定時刻（JST）に、当日締め切りの予定がある際、プッシュ通知で警告します。
                             </h3>
@@ -365,50 +408,60 @@ watch(
                                         v-for="(time, index) in timeArray"
                                         :key="time.value"
                                     >
-                                        <button
-                                            class="btn-sm btn flex flex-row items-center justify-center md:gap-1"
-                                            :class="
+                                        <template
+                                            v-if="
                                                 registeredTime.includes(
                                                     time.value
                                                 )
-                                                    ? 'btn-secondary'
-                                                    : ''
                                             "
-                                            @click="controllTime(time.value)"
                                         >
-                                            <svg
-                                                v-if="
-                                                    registeredTime.includes(
-                                                        time.value
-                                                    )
+                                            <button
+                                                class="btn-secondary btn-sm btn flex flex-row items-center justify-center md:gap-1"
+                                                @click="
+                                                    controllTime(time.value)
                                                 "
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                viewBox="0 0 384 512"
-                                                class="h-3 w-3"
-                                                fill="currentColor"
                                             >
-                                                <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                                                <path
-                                                    d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"
-                                                />
-                                            </svg>
-                                            <svg
-                                                v-else
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                viewBox="0 0 448 512"
-                                                class="h-3 w-3"
-                                                fill="currentColor"
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    viewBox="0 0 384 512"
+                                                    class="h-3 w-3"
+                                                    fill="currentColor"
+                                                >
+                                                    <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                                                    <path
+                                                        d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"
+                                                    />
+                                                </svg>
+                                                <span
+                                                    class="text-xs md:text-base"
+                                                    >{{ time.label }}</span
+                                                >
+                                            </button>
+                                        </template>
+                                        <template v-else>
+                                            <button
+                                                class="btn-sm btn flex flex-row items-center justify-center md:gap-1"
+                                                @click="
+                                                    controllTime(time.value)
+                                                "
                                             >
-                                                <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                                                <path
-                                                    d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"
-                                                />
-                                            </svg>
-                                            <span
-                                                class="text-xs md:text-base"
-                                                >{{ time.label }}</span
-                                            >
-                                        </button>
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    viewBox="0 0 448 512"
+                                                    class="h-3 w-3"
+                                                    fill="currentColor"
+                                                >
+                                                    <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                                                    <path
+                                                        d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"
+                                                    />
+                                                </svg>
+                                                <span
+                                                    class="text-xs md:text-base"
+                                                    >{{ time.label }}</span
+                                                >
+                                            </button>
+                                        </template>
                                     </template>
                                 </div>
                             </div>
