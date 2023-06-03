@@ -50,7 +50,7 @@ const emits = defineEmits(["requestPermission", "checkToken"]);
 
 const formatDay = (input) => {
     const day = dayjs(input);
-    return day.format("M/DD");
+    return day.format("MM/DD");
 };
 const formatTime = (input) => {
     const day = dayjs(input);
@@ -162,7 +162,7 @@ watch(
                         class="flex h-full w-full flex-col justify-start rounded-md shadow shadow-custom-shadow md:flex-row"
                     >
                         <div
-                            class="mr-2 flex w-full flex-row items-baseline justify-center gap-2 rounded-t-md py-3 px-4 text-white md:w-20 md:flex-col md:items-center md:gap-0 md:rounded-l-md md:rounded-tr-none lg:mr-4"
+                            class="mr-2 flex w-full flex-row items-baseline justify-center gap-2 rounded-t-md py-3 px-2 text-white md:w-24 md:flex-col md:items-center md:gap-0 md:rounded-l-md md:rounded-tr-none lg:mr-4"
                             :style="
                                 'background-color:' +
                                 cols(index / Object.keys(props.data).length) +
@@ -184,73 +184,6 @@ watch(
                     </div>
                 </div>
             </div>
-        </div>
-        <h3 class="whitespace-nowrap px-6 text-lg md:px-12">Permanently</h3>
-        <div class="w-full pb-4 lg:px-4">
-            <div
-                class="items flex w-full flex-col items-stretch justify-center 2xl:flex-row 2xl:flex-wrap"
-            >
-                <div
-                    v-for="(data, index) in props.coming"
-                    :key="index"
-                    class="my-2 mx-auto w-full px-2 lg:my-4 2xl:w-1/2"
-                    :class="index % 2 === 0 ? 'ml-0 mr-auto' : 'mr-0 ml-auto'"
-                >
-                    <div
-                        class="flex h-full min-h-[88px] w-full flex-col justify-start rounded-md px-0 shadow shadow-custom-shadow md:flex-row"
-                    >
-                        <div
-                            class="flex w-full flex-col items-center rounded-t-md bg-ptr-dark-brown py-3 px-4 text-white md:mr-4 md:w-20 md:rounded-l-md md:rounded-tr-none"
-                        >
-                            <p class="whitespace-nowrap text-xs">Permanently</p>
-                            <div
-                                class="flex flex-row items-baseline gap-x-2 md:flex-col"
-                            >
-                                <p class="text-md whitespace-nowrap lg:text-xl">
-                                    {{ formatDay(data["start_date"]) }}
-                                </p>
-                                <p class="whitespace-nowrap text-sm lg:text-lg">
-                                    {{ formatTime(data["start_date"]) }}
-                                </p>
-                            </div>
-                        </div>
-                        <div class="py-2 px-4">
-                            <p class="text-md title-display lg:text-xl">
-                                {{ data["event_title"] }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="w-full pb-4 lg:px-4">
-            <Carousel
-                v-bind="settings"
-                :breakpoints="breakpoints"
-                :wrap-around="Object.keys(props.persistent).length > 1"
-                class="w-full"
-            >
-                <Slide v-for="(data, index) in props.persistent" :key="index">
-                    <div class="my-2 h-full min-h-[88px] w-full py-2 px-2">
-                        <div
-                            class="flex h-full w-full flex-col justify-start rounded-md px-0 shadow shadow-custom-shadow md:flex-row"
-                        >
-                            <div class="max-w-full py-2 px-4">
-                                <p
-                                    class="text-md text-left title-display lg:text-xl"
-                                >
-                                    {{ data["event_title"] }}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </Slide>
-
-                <template #addons>
-                    <Pagination />
-                </template>
-            </Carousel>
         </div>
 
         <!-- Notification Modal -->
@@ -477,6 +410,90 @@ watch(
                 </div>
             </Modal>
         </div>
+        <h3 class="whitespace-nowrap px-6 text-lg md:px-12">Comming</h3>
+        <div class="w-full pb-4 lg:px-4">
+            <div
+                class="items flex w-full flex-col items-stretch justify-center 2xl:flex-row 2xl:flex-wrap"
+            >
+                <div
+                    v-for="(data, index) in props.coming"
+                    :key="index"
+                    class="my-2 mx-auto w-full px-2 lg:my-4 2xl:w-1/2"
+                    :class="index % 2 === 0 ? 'ml-0 mr-auto' : 'mr-0 ml-auto'"
+                >
+                    <div
+                        class="flex h-full w-full flex-col justify-start rounded-md shadow shadow-custom-shadow md:flex-row"
+                    >
+                        <div
+                            class="mr-2 flex w-full flex-row items-end justify-center gap-2 rounded-t-md bg-ptr-dark-brown py-3 px-2 text-white md:w-24 md:flex-col md:items-center md:gap-0 md:rounded-l-md md:rounded-tr-none lg:mr-4"
+                        >
+                            <div
+                                class="flex w-fit flex-col items-baseline md:w-full"
+                            >
+                                <p class="whitespace-nowrap text-base">
+                                    {{ formatDay(data["start_date"]) }}
+                                </p>
+                                <p class="ml-1 whitespace-nowrap text-sm">
+                                    {{ formatTime(data["start_date"]) }}
+                                </p>
+                            </div>
+                            <div
+                                class="flex w-fit flex-row items-center justify-end gap-2 md:w-full md:gap-1"
+                            >
+                                <span>→</span>
+                                <div class="flex flex-col items-end">
+                                    <p class="whitespace-nowrap text-sm">
+                                        {{ formatDay(data["end_date"]) }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="py-2 px-4">
+                            <p class="text-md title-display lg:text-xl">
+                                {{ data["event_title"] }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div
+                    v-for="(data, index) in props.persistent"
+                    :key="index"
+                    class="my-2 mx-auto w-full px-2 lg:my-4 2xl:w-1/2"
+                    :class="index % 2 === 0 ? 'ml-0 mr-auto' : 'mr-0 ml-auto'"
+                >
+                    <div
+                        class="flex h-full w-full flex-col justify-start rounded-md shadow shadow-custom-shadow md:flex-row"
+                    >
+                        <div
+                            class="mr-2 flex w-full flex-row items-end justify-center gap-2 rounded-t-md bg-ptr-dark-brown py-3 px-2 text-white md:w-24 md:flex-col md:items-center md:gap-0 md:rounded-l-md md:rounded-tr-none lg:mr-4"
+                        >
+                            <div
+                                class="flex w-fit flex-col items-baseline md:w-full"
+                            >
+                                <p class="whitespace-nowrap text-base">
+                                    {{ formatDay(data["start_date"]) }}
+                                </p>
+                                <p class="ml-1 whitespace-nowrap text-sm">
+                                    {{ formatTime(data["start_date"]) }}
+                                </p>
+                            </div>
+                            <div
+                                class="flex w-fit flex-row items-center justify-end gap-2 md:w-full md:gap-1"
+                            >
+                                <span>→</span>
+                                <span class="text-sm">None</span>
+                            </div>
+                        </div>
+                        <div class="py-2 px-4">
+                            <p class="text-md title-display lg:text-xl">
+                                {{ data["event_title"] }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- ptr-horn -->
         <div class="absolute top-0 right-0 -translate-y-1/3">
             <svg

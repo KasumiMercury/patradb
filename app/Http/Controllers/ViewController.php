@@ -33,8 +33,9 @@ class ViewController extends Controller
         $todaySchedule = DB::table('schedules')->where('end_date','>=',$today)->where('start_date','<=',$today)
                             ->orderBy('end_date')
                             ->get();
+        $commingSchedule = DB::table('schedules')->where('start_date','>',$today)->orderBy('start_date','desc')->get();
         $persistentComing = DB::table('persistent')->where('start_date','>=',$today)->orderBy('start_date','desc')->get();
-        $persistentSchedule = DB::table('persistent')->where('start_date','<=',$today)->orderBy('start_date','desc')->get();
+        // $persistentSchedule = DB::table('persistent')->where('start_date','<=',$today)->orderBy('start_date','desc')->get();
 
         $monthSchedule = DB::table('schedules')->where('end_date','>=',$today)->where('start_date','<',$monthDay)
                             ->orderBy('end_date')
@@ -44,8 +45,8 @@ class ViewController extends Controller
             'todayStream' => $todayStream,
             'tomorrowStream' => $tomorrowStream,
             'today' => $todaySchedule,
-            'coming' => $persistentComing,
-            'persistent' => $persistentSchedule,
+            'coming' => $commingSchedule,
+            'persistent' => $persistentComing,
             'rss' => $rssStream,
             'month' => $monthSchedule,
         ]);
@@ -179,7 +180,11 @@ class ViewController extends Controller
     }
     public function SearchCollabo(Request $request){
         $query = $request->query();
-        $temp = DB::table('videos')->where('channel','!=','patra')->where('status','archived')->orderBy('scheduled_at')->select('id','channel')->get();
+        $patraChannel = config('services.channel');
+        $channelArray = array_keys($patraChannel);
+
+        // pick data from DB which is not patra channel and archived
+        $temp = DB::table('videos')->where('status','archived')->whereNotIn('channel',$channelArray)->orderBy('scheduled_at')->select('id','channel')->get();
         $dataList = $this->groupBy($temp,'channel');
 
         return Inertia::render('CollaboSearch',[
@@ -187,6 +192,16 @@ class ViewController extends Controller
             'query' => $query,
         ]);
     }
+
+    // admin page
+    public function AdminSchedule(){
+        // get schedule_infos which is not checked
+        $scheduleInfos = DB::table('schedule_infos')->where('checked',false)->orderBy('created_at')->get();
+        return Inertia::render('AdminSchedule',[
+            'scheduleInfos' => $scheduleInfos,
+        ]);
+    }
+
     private function groupBy($array, $key) {
         $result = array();
         foreach($array as $val) {

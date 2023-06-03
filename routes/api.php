@@ -24,6 +24,12 @@ Route::prefix('post')->group(function(){
     Route::POST('player',[App\Http\Controllers\DataController::class, 'PostPlayer'])->name('post.player');
 });
 
+Route::prefix('Authorization')->group(function(){
+    Route::POST('schedule',[App\Http\Controllers\DataController::class, 'AuthorizateSchedule'])->name('authorize.schedule');
+    // Route::POST('stream',[App\Http\Controllers\DataController::class, 'AuthorizateStream'])->name('authorize.stream');
+    // Route::POST('player',[App\Http\Controllers\DataController::class, 'AuthorizatePlayer'])->name('authorize.player');
+});
+
 Route::prefix('check')->group(function(){
     Route::GET('/',[App\Http\Controllers\DataController::class, 'CheckVideoExist'])->name('check.video.exist');
     Route::GET('collabo',[App\Http\Controllers\DataController::class, 'CheckCollabo'])->name('check.collabo');

@@ -9,7 +9,6 @@ const props = defineProps({
     data: Object,
 });
 let settings = {
-    autoplay: 4000,
     snapAlign: "center",
     transition: 500,
 };

@@ -71,11 +71,9 @@ Route::prefix('create')->group(function(){
 // admin only routes group with AdminGuard middleware
 Route::prefix('admin')->middleware('auth.admin')->group(function(){
     Route::get('/',function () {
-        return Inertia::render('TopPage');
+        return Inertia::render('AdminTop');
     })->name('admin.top');
-    Route::get('schedule',function () {
-        return Inertia::render('AdminSchedule');
-    })->name('admin.schedule');
+    Route::get('schedule',[App\Http\Controllers\ViewController::class,'AdminSchedule'])->name('admin.schedule');
 });
 
 Route::middleware([

@@ -104,37 +104,46 @@ const openStreamNotionModal = () => {
     checkToken();
     streamNotionModal.value = true;
 };
-const controllSubscribe = (targetTopic) => {
-    registering.value = true;
-    if (registeredTopic.value.includes(targetTopic)) {
-        axios
-            .post(route("unsubscribe.notification.topic"), {
-                fcmToken: fcmToken.value,
-                topic: targetTopic,
-            })
-            .then((res) => {
-                if (res.data.unsubscribed) {
-                    registering.value = false;
-                    registeredTopic.value = registeredTopic.value.filter(
-                        (item) => item != targetTopic
-                    );
-                }
-            });
+
+const controllSubscribe = (targetTopic, operate) => {
+    if (operate) {
+        registerSubscribe(targetTopic);
     } else {
-        axios
-            .post(route("subscribe.notification.topic"), {
-                fcmToken: fcmToken.value,
-                topic: targetTopic,
-            })
-            .then((res) => {
-                registering.value = false;
-                // console.log(res.data.subscribed);
-                if (res.data.subscribed) {
-                    registeredTopic.value.push(targetTopic);
-                }
-            });
+        deleteSubscribe(targetTopic);
     }
 };
+const registerSubscribe = (targetTopic) => {
+    registering.value = true;
+    axios
+        .post(route("subscribe.notification.topic"), {
+            fcmToken: fcmToken.value,
+            topic: targetTopic,
+        })
+        .then((res) => {
+            registering.value = false;
+            // console.log(res.data.subscribed);
+            if (res.data.subscribed) {
+                registeredTopic.value.push(targetTopic);
+            }
+        });
+};
+const deleteSubscribe = (targetTopic) => {
+    registering.value = true;
+    axios
+        .post(route("unsubscribe.notification.topic"), {
+            fcmToken: fcmToken.value,
+            topic: targetTopic,
+        })
+        .then((res) => {
+            if (res.data.unsubscribed) {
+                registering.value = false;
+                registeredTopic.value = registeredTopic.value.filter(
+                    (item) => item != targetTopic
+                );
+            }
+        });
+};
+
 watch(
     () => fcmToken.value,
     () => {
@@ -153,7 +162,6 @@ watch(
             });
     }
 );
-
 
 const { debounce, chunk, sortedIndexBy, sortedIndex } = pkg;
 const rssStream = ref();
@@ -439,6 +447,7 @@ export default {
             <div class="mr-0 ml-auto mt-12 w-full max-w-7xl lg:mt-24 lg:w-2/3">
                 <MonthlySchedule
                     :monthData="month"
+                    :persistent="persistent"
                     class="rounded-br-lg rounded-bl-3xl before:left-2 before:rounded-bl-3xl before:rounded-br-lg"
                 />
             </div>
@@ -446,37 +455,16 @@ export default {
                 class="ml-0 mr-0 mt-12 w-full max-w-7xl lg:mt-24 lg:mr-auto lg:w-2/3"
             >
                 <TodayStream
+                    @openStreamNotionModal="openStreamNotionModal"
                     :today="todayStream"
                     :tomorrow="tomorrowStream"
-                    :persistent="persistent"
-                    :permissionLoading="permissionLoading"
-                    :isNotificationPermissionDenied="
-                        isNotificationPermissionDenied
-                    "
-                    :isNotificationPermissionError="
-                        isNotificationPermissionError
-                    "
-                    :fcmToken="fcmToken"
-                    :isTokenRegisteredUser="isTokenRegisteredUser"
-                    @requestPermission="requestPermission"
-                    @openStreamNotionModal="openStreamNotionModal"
                 />
             </div>
             <div class="mt-12 mr-0 ml-auto w-full max-w-7xl lg:mt-24 lg:w-2/3">
                 <RssStream
                     :data="rss"
                     ref="rssStream"
-                    :permissionLoading="permissionLoading"
-                    :isNotificationPermissionDenied="
-                        isNotificationPermissionDenied
-                    "
-                    :isNotificationPermissionError="
-                        isNotificationPermissionError
-                    "
-                    :fcmToken="fcmToken"
-                    :isTokenRegisteredUser="isTokenRegisteredUser"
-                    @requestPermission="requestPermission"
-                    @checkToken="checkToken"
+                    @openStreamNotionModal="openStreamNotionModal"
                 />
             </div>
         </div>
@@ -555,25 +543,42 @@ export default {
                         </div>
                     </template>
                     <template v-else>
-                        <div class="flex flex-col gap-4 items-end w-fit mx-auto">
-                            <TopicTabs :registered="registeredTopic.find(value => value.match(/ChangeTime$/g))">開始時刻変更警告：</TopicTabs>
-                            <TopicTabs :registered="registeredTopic.find(value => value.match(/DifferentTime$/g))">スケジュール外警告：</TopicTabs>
-                            <TopicTabs :registered="registeredTopic.find(value => value.match(/NotificationUpcoming$/g))">配信枠設置通知：</TopicTabs>
+                        <div
+                            class="mx-auto flex w-fit flex-col items-end gap-4"
+                        >
+                            <TopicTabs
+                                @controllSubscribe="controllSubscribe"
+                                topic="CautionChangeTime"
+                                :registered="
+                                    registeredTopic.find((value) =>
+                                        value.match(/ChangeTime$/g)
+                                    )
+                                "
+                                >開始時刻変更警告：</TopicTabs
+                            >
+                            <TopicTabs
+                                @controllSubscribe="controllSubscribe"
+                                topic="CautionDifferentTime"
+                                :registered="
+                                    registeredTopic.find((value) =>
+                                        value.match(/DifferentTime$/g)
+                                    )
+                                "
+                                >スケジュール外警告：</TopicTabs
+                            >
+                            <TopicTabs
+                                @controllSubscribe="controllSubscribe"
+                                topic="NotificationUpcoming"
+                                :registered="
+                                    registeredTopic.find((value) =>
+                                        value.match(/NotificationUpcoming$/g)
+                                    )
+                                "
+                                >配信枠設置通知：</TopicTabs
+                            >
                         </div>
                     </template>
                 </template>
-                <div
-                    class="absolute top-0 left-0 h-full w-full bg-ptr-dark-brown/80"
-                    v-if="registering"
-                >
-                    <div class="relative h-full w-full">
-                        <p
-                            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-xl text-ptr-pink"
-                        >
-                            変更を適用しています。
-                        </p>
-                    </div>
-                </div>
             </div>
         </Modal>
     </div>

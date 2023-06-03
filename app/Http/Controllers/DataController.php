@@ -24,12 +24,6 @@ class DataController extends Controller
         $send["creater_hn"] = $temp["handleName"];
         $send["creater_id"] = $temp["userId"];
 
-        /*translate method*/
-        // $authKey = config('services.deepl.key');
-        // $translator = new Translator($authKey);
-        // $result = $translator->translateText($temp["title"], null, 'en-US');
-        // $send["event_en"] = $result->text;
-
         /*auto insert timestamp*/
         $send["created_at"] = date('Y-m-d H:i:s');
         $send["updated_at"] = date('Y-m-d H:i:s');
@@ -39,6 +33,47 @@ class DataController extends Controller
 
         return redirect()->route('toppage');
     }
+    public function AuthorizateSchedule(Request $request){
+        // insert to schedules_table
+        $temp = $request->all();
+        $send["start_date"] = date('Y-m-d H:i:s', strtotime($temp["start_date"]));
+        $send["end_date"] = date('Y-m-d H:i:s', strtotime($temp["end_date"]));
+        $send["event_title"] = $temp["event_title"];
+        $send["event_en"] = $temp["event_en"];
+        $send["event_code"] = $temp["event_code"];
+
+        /*auto insert timestamp*/
+        $send["created_at"] = date('Y-m-d H:i:s');
+        $send["updated_at"] = date('Y-m-d H:i:s');
+
+        /*insert and get id*/
+        $scheduleId = DB::table('schedules')->insertGetId($send);
+
+        // insert to schedules_infos_relation_table
+        $relationIdArray = $temp["relation"];
+
+        // if relationIdArray is empty, insert scheduleId and 0 to schedules_infos_relation_table
+        if(count($relationIdArray) == 0){
+            $sendRelation["schedule_id"] = $scheduleId;
+            $sendRelation["schedule_info_id"] = 0;
+            $sendRelation["created_at"] = date('Y-m-d H:i:s');
+            $sendRelation["updated_at"] = date('Y-m-d H:i:s');
+            DB::table('schedules_infos_relation')->insert($sendRelation);
+        }else{
+            foreach($relationIdArray as $relationId){
+                $sendRelation["schedule_id"] = $scheduleId;
+                $sendRelation["schedule_info_id"] = $relationId;
+                $sendRelation["created_at"] = date('Y-m-d H:i:s');
+                $sendRelation["updated_at"] = date('Y-m-d H:i:s');
+                DB::table('schedules_infos_relation')->insert($sendRelation);
+            }
+            // update checked column in schedule_infos table where id is in relationIdArray
+            DB::table('schedule_infos')->whereIn('id',$relationIdArray)->update(['checked' => true]);
+        }
+
+        return redirect()->route('admin.top');
+    }
+
     public function PostStream(Request $request){
         $temp = $request->all();
         $send["scheduled_at"] = date('Y-m-d H:i:s', strtotime($temp["scheduled_at"]));

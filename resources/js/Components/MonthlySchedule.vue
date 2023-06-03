@@ -9,21 +9,12 @@ import Modal from "./Modal.vue";
 const { debounce, chunk, sortedIndexBy, sortedIndex } = pkg;
 const props = defineProps({
     monthData: Object,
+    persistent: Object,
 });
 
 const loginModal = ref(false);
 
 const timelineWrapper = ref();
-
-// TimelineData is displayed in d3.js against the TimelineWrapper.
-// Display props.monthData.title in text on Y-axis
-// X-axis displays a tick for each day from today to the maximum number of days in props.monthData and is fixed at the top
-// The length of the tick is equal to the height.
-// Default display range is 2 weeks with zoom and horizontal panning.
-// The height of each event is 20, and if it exceeds the height, it can be displayed by vertical panning. In this case, X-axis label is fixed at the top.
-// Display width is reflected by obtaining the width of the timelineWrapper
-// When resizing is detected, elements related to width are updated.
-// background color is #2d2a2d, text color is #fff and tick color is #fff
 
 // setting
 let width = 1000;
@@ -35,9 +26,33 @@ let margin = {
 };
 let marginLeftSm = 30;
 let marginLeftLg = 100;
-const events = props.monthData;
+let events = props.monthData;
 const eventHeight = 30;
 const eventPadding = 1;
+
+let maxDay = props.monthData[Object.keys(props.monthData).length - 1].end_date;
+let today = new Date();
+today.setHours(0, 0, 0, 0);
+let yesterday = new Date();
+yesterday.setDate(yesterday.getDate() - 1);
+yesterday.setHours(0, 0, 0, 0);
+let defScale = 1;
+let defScaleWidth = 1000;
+
+// add persistent data to events array, and sort by start_date
+// if persistent data's start_date is before today, set start_date to today
+// all persistent data's end_date is same as maxDay
+// sort events array by start_date
+// add persistent data to events array
+let persistentData = props.persistent;
+persistentData.forEach((data) => {
+    if (new Date(data.start_date) < new Date(today)) {
+        data.start_date = yesterday;
+    }
+    data.end_date = maxDay;
+    events.push(data);
+});
+
 const height =
     (eventHeight + eventPadding) * events.length +
     margin.top +
@@ -46,7 +61,7 @@ const height =
 
 const cols = chroma
     .scale(["#c20063", "#D8346E", "#ff99cd"])
-    .classes(props.monthData.length)
+    .classes(events.length)
     .mode("lch");
 
 // elements
@@ -69,17 +84,9 @@ let instrumentLabelRight = null;
 
 let zoom = null;
 
-let maxDay = props.monthData[Object.keys(props.monthData).length - 1].end_date;
-let today = new Date();
-today.setHours(0, 0, 0, 0);
-let defScale = 1;
-let defScaleWidth = 1000;
-
 // axis
 let xScale = null;
-let yScale = null;
 let xAxis = null;
-let yAxis = null;
 
 let currentPosition = 0;
 let currentEventIndex = 0;
@@ -139,29 +146,27 @@ const changeWidth = () => {
 
 const setAxis = () => {
     let long = (new Date(maxDay) - new Date(today)) / 86400000;
+    console.log(long);
     if (width < 500) {
         if (long < 7) {
-            defScale = 7;
+            defScale = 1;
         } else {
             defScale = long / 7;
         }
     } else {
         if (long < 14) {
-            defScale = 14;
+            defScale = 1;
         } else {
             defScale = long / 14;
         }
     }
 
     defScaleWidth = (width - margin.left - margin.right) * defScale;
+    console.log(defScale);
     xScale = d3
         .scaleTime()
         .domain([new Date(today), new Date(maxDay)])
         .range([0, defScaleWidth]);
-    yScale = d3
-        .scaleLinear()
-        .domain([0, props.monthData.max_day])
-        .range([height - margin.top - margin.bottom, 0]);
     xAxis = d3
         .axisTop(xScale)
         .tickSize(-height + margin.top + margin.bottom)
@@ -216,7 +221,7 @@ const drawInstrumentLabel = () => {
         .attr("class", "instrument-area");
     instrumentLabel = instrumentArea
         .selectAll("g")
-        .data(props.monthData)
+        .data(events)
         .enter()
         .append("g")
         .attr("class", "instrument-label");
@@ -229,7 +234,7 @@ const drawInstrumentLabel = () => {
         .attr("width", 6)
         .attr("height", eventHeight)
         .attr("fill", (d, i) => {
-            return cols(i / props.monthData.length);
+            return cols(i / events.length);
         });
     instrumentLabelBg = instrumentLabel
         .append("rect")
@@ -467,7 +472,7 @@ const drawEvent = () => {
         })
         .attr("height", eventHeight)
         .attr("fill", (d, i) => {
-            return cols(i / props.monthData.length);
+            return cols(i / events.length);
         })
         .attr("stroke", "#fff")
         .attr("stroke-width", 0.3);
@@ -533,7 +538,7 @@ const updateDrawEvent = () => {
         })
         .attr("height", eventHeight)
         .attr("fill", (d, i) => {
-            return cols(i / props.monthData.length);
+            return cols(i / events.length);
         })
         .attr("stroke", "#fff")
         .attr("stroke-width", 0.3);
@@ -637,7 +642,7 @@ const zoomed = (e) => {
         class="relative rounded-t-lg bg-ptr-white px-4 pb-4 pt-8 before:absolute before:top-2 before:-z-10 before:h-full before:w-full before:rounded-t-lg before:bg-ptr-pink"
     >
         <div
-            class="relative max-h-96 w-full rounded-md bg-ptr-dark-brown"
+            class="relative w-full rounded-md bg-ptr-dark-brown"
             :style="`height: ${height}px`"
         >
             <div

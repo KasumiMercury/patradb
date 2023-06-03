@@ -17,6 +17,8 @@ if (!isServer) {
     innerWidth.value = window.innerWidth;
 }
 
+const warning = ref(true);
+
 const checkWindowSize = () => {
     if (!isServer) {
         if (props.forceMenuHide) {
@@ -322,7 +324,7 @@ const logout = () => {
                                 class="w-full rounded-md lg:flex lg:flex-col"
                                 :class="{
                                     'py-0': isMaximum,
-                                    'border-2 border-ptr-dark-brown bg-ptr-light-pink pb-12 shadow-lg shadow-custom-shadow/50':
+                                    'border-2 border-ptr-dark-brown bg-ptr-light-pink pb-4 shadow-lg shadow-custom-shadow/50':
                                         !isMaximum,
                                 }"
                             >
@@ -601,6 +603,13 @@ const logout = () => {
                                             </ResponsiveNavLink>
                                         </form>
                                     </div>
+                                    <div class="my-1 w-full text-right">
+                                        <Link
+                                            class="select-all text-xs text-ptr-light-pink"
+                                            :href="route('admin.top')"
+                                            >dev</Link
+                                        >
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -772,6 +781,39 @@ const logout = () => {
                 <div
                     class="fixed inset-x-0 bottom-0 z-30 block h-12 w-screen bg-gray-300 pb-safe lg:absolute lg:hidden"
                 ></div>
+
+                <div
+                    v-if="
+                        !route().current('sitepolicy') &&
+                        !route().current('toppage')
+                    "
+                    class="fixed top-20 right-0 z-50 flex w-fit items-stretch gap-2 rounded-l-md bg-ptr-dark-brown px-2 py-1 text-white"
+                >
+                    <div>
+                        <button class="h-full w-5" @click="warning = !warning">
+                            <svg
+                                class="aspect-square w-full fill-ptr-white text-xs md:text-base"
+                                xmlns="http://www.w3.org/2000/svg"
+                                height="1em"
+                                viewBox="0 0 512 512"
+                            >
+                                <!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                                <path
+                                    d="M256 32c14.2 0 27.3 7.5 34.5 19.8l216 368c7.3 12.4 7.3 27.7 .2 40.1S486.3 480 472 480H40c-14.3 0-27.6-7.7-34.7-20.1s-7-27.8 .2-40.1l216-368C228.7 39.5 241.8 32 256 32zm0 128c-13.3 0-24 10.7-24 24V296c0 13.3 10.7 24 24 24s24-10.7 24-24V184c0-13.3-10.7-24-24-24zm32 224a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+                    <div
+                        v-if="warning"
+                        class="flex w-fit flex-col items-center text-sm md:text-base"
+                    >
+                        <p>当サイトは非公式コンテンツです。</p>
+                        <Link :href="route('sitepolicy')" class="link"
+                            >SitePolicy</Link
+                        >
+                    </div>
+                </div>
             </div>
         </div>
     </div>
