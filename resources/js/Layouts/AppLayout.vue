@@ -82,11 +82,11 @@ const logout = () => {
     router.post(route("logout"));
 };
 
-// if(!isServer) {
-//     router.on("start", (event) => {
-//         currentUrl.value = event.detail.visit.url;
-//     });
-// }
+if (!isServer) {
+    router.on("start", (event) => {
+        currentUrl.value = event.detail.visit.url;
+    });
+}
 </script>
 <style>
 .bg_gold {
@@ -183,6 +183,7 @@ const logout = () => {
                                     showingNavigationDropdown =
                                         !showingNavigationDropdown
                                 "
+                                aria-label="Main menu"
                             >
                                 <svg
                                     class="h-6 w-6"
@@ -787,10 +788,12 @@ const logout = () => {
                         !route().current('sitepolicy') &&
                         !route().current('toppage')
                     "
-                    class="fixed top-20 right-0 z-50 flex w-fit items-stretch gap-2 rounded-l-md bg-ptr-dark-brown px-2 py-1 text-white"
+                    class="fixed top-20 right-0 z-30 flex w-fit items-stretch gap-2 rounded-l-md bg-ptr-dark-brown px-2 py-1 text-white"
                 >
                     <div>
-                        <button class="h-full w-5" @click="warning = !warning">
+                        <button class="h-full w-5" @click="warning = !warning"
+                        aria-label="Warning"
+                        >
                             <svg
                                 class="aspect-square w-full fill-ptr-white text-xs md:text-base"
                                 xmlns="http://www.w3.org/2000/svg"

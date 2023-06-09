@@ -33,9 +33,7 @@ const props = defineProps({
     isTokenRegisteredUser: Boolean,
 });
 const registeredTime = ref([]);
-// time select value definition per hour (0-23) label and value
 const timeDefinition = ref([]);
-// generate time select value and label definition
 for (let i = 0; i < 24; i++) {
     timeDefinition.value.push({
         label: i.toString().padStart(2, "0") + ":00",
@@ -150,26 +148,28 @@ watch(
 
         <div class="w-full pb-4 lg:px-4">
             <div
-                class="flex w-full flex-col items-stretch justify-center 2xl:flex-row 2xl:flex-wrap"
+                class="flex w-full flex-col items-stretch justify-center"
             >
                 <div
                     v-for="(data, index) in props.data"
                     :key="index"
-                    class="my-2 mx-auto w-full px-2 lg:my-4 2xl:w-1/2"
+                    class="my-2 mx-auto w-full px-2 lg:my-4"
                     :class="index % 2 === 0 ? 'ml-0 mr-auto' : 'mr-0 ml-auto'"
                 >
                     <div
                         class="flex h-full w-full flex-col justify-start rounded-md shadow shadow-custom-shadow md:flex-row"
                     >
                         <div
-                            class="mr-2 flex w-full flex-row items-baseline justify-center gap-2 rounded-t-md py-3 px-2 text-white md:w-24 md:flex-col md:items-center md:gap-0 md:rounded-l-md md:rounded-tr-none lg:mr-4"
+                            class="mr-2 flex w-full flex-row items-baseline justify-center gap-2 rounded-t-md py-3 px-2 md:w-24 md:flex-col md:items-center md:gap-0 md:rounded-l-md md:rounded-tr-none lg:mr-4"
+                            :class="index >= Object.keys(props.data).length/3*2 ? 'text-ptr-dark-brown' : 'text-ptr-white'"
                             :style="
                                 'background-color:' +
                                 cols(index / Object.keys(props.data).length) +
                                 ';'
                             "
                         >
-                            <p class="whitespace-nowrap text-lg lg:text-2xl">
+                            <p class="whitespace-nowrap text-lg lg:text-2xl"
+                            >
                                 {{ formatDay(data["end_date"]) }}
                             </p>
                             <p class="whitespace-nowrap text-sm lg:text-lg">
@@ -177,7 +177,8 @@ watch(
                             </p>
                         </div>
                         <div class="py-2 px-4">
-                            <p class="text-md title-display lg:text-xl">
+                            <p class="text-md title-display lg:text-xl"
+                            >
                                 {{ data["event_title"] }}
                             </p>
                         </div>
@@ -410,15 +411,15 @@ watch(
                 </div>
             </Modal>
         </div>
-        <h3 class="whitespace-nowrap px-6 text-lg md:px-12">Comming</h3>
+        <h2 v-if="Object.keys(props.coming).length > 0 || Object.keys(props.persistent).length > 0" class="whitespace-nowrap px-6 text-lg md:px-12">Comming</h2>
         <div class="w-full pb-4 lg:px-4">
             <div
-                class="items flex w-full flex-col items-stretch justify-center 2xl:flex-row 2xl:flex-wrap"
+                class="items flex w-full flex-col items-stretch justify-center"
             >
                 <div
                     v-for="(data, index) in props.coming"
                     :key="index"
-                    class="my-2 mx-auto w-full px-2 lg:my-4 2xl:w-1/2"
+                    class="my-2 mx-auto w-full px-2 lg:my-4"
                     :class="index % 2 === 0 ? 'ml-0 mr-auto' : 'mr-0 ml-auto'"
                 >
                     <div
@@ -458,7 +459,7 @@ watch(
                 <div
                     v-for="(data, index) in props.persistent"
                     :key="index"
-                    class="my-2 mx-auto w-full px-2 lg:my-4 2xl:w-1/2"
+                    class="my-2 mx-auto w-full px-2 lg:my-4"
                     :class="index % 2 === 0 ? 'ml-0 mr-auto' : 'mr-0 ml-auto'"
                 >
                     <div

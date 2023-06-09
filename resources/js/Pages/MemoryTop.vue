@@ -42,26 +42,26 @@ export default {
             <p class="text-xs font-semibold text-gray-800">Memories</p>
         </Teleport>
 
-        <div>
+        <div class="px-5">
             <div
-                class="gradientGlass relative mx-auto mt-10 flex w-fit flex-col justify-around gap-20 rounded-md px-20 py-20 backdrop-blur-sm backdrop-saturate-[1.2] md:mt-20 md:px-32"
+                class="gradientGlass relative mx-auto mt-10 flex w-full md:w-fit flex-col justify-around gap-7 md:gap-20 rounded-md px-20 py-20 backdrop-blur-sm backdrop-saturate-[1.2] md:mt-20 md:px-32"
             >
                 <Link
                     as="button"
                     :href="route('memory.search')"
-                    class="rounded-lg bg-gradient-to-br from-ptr-dark-brown to-ptr-dark-brown/40 px-20 py-5 text-white"
+                    class="rounded-lg bg-gradient-to-br from-ptr-dark-brown to-ptr-dark-brown/40 md:px-20 py-5 text-white"
                     >Memory Search</Link
                 >
                 <Link
                     as="button"
                     :href="route('memory.videos')"
-                    class="rounded-lg bg-gradient-to-br from-ptr-dark-brown to-ptr-dark-brown/40 px-20 py-5 text-white"
+                    class="rounded-lg bg-gradient-to-br from-ptr-dark-brown to-ptr-dark-brown/40 md:px-20 py-5 text-white"
                     >Video Search</Link
                 >
                 <Link
                     as="button"
                     :href="route('memory.collabo')"
-                    class="rounded-lg bg-gradient-to-br from-ptr-dark-brown to-ptr-dark-brown/40 px-20 py-5 text-white"
+                    class="rounded-lg bg-gradient-to-br from-ptr-dark-brown to-ptr-dark-brown/40 md:px-20 py-5 text-white"
                     >Collabo Search</Link
                 >
                 <div class="emit absolute left-0 h-full w-1 rounded-md"></div>

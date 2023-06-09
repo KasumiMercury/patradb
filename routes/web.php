@@ -18,15 +18,15 @@ use Inertia\Inertia;
 Route::get("/transition-login", [App\Http\Controllers\LoginController::class, "index"])->name("transition.login");
 
 /*main routes*/
-Route::get('/',[App\Http\Controllers\ViewController::class, 'TopPage'])->name('toppage');
+Route::get('/',[App\Http\Controllers\ViewController::class, 'TopPage'])->middleware('collect.http.request.stat')->name('toppage');
 Route::get('/privacypolicy',function(){
     return Inertia::render('PrivacyPolicy');
-})->name('privacypolicy');
+})->middleware('collect.http.request.stat')->name('privacypolicy');
 Route::get('/sitepolicy',function(){
     return Inertia::render('SitePolicy');
-})->name('sitepolicy');
+})->middleware('collect.http.request.stat')->name('sitepolicy');
 
-Route::prefix('memories')->group(function(){
+Route::prefix('memories')->middleware('collect.http.request.stat')->group(function(){
     Route::get('/',function () {
         return Inertia::render('MemoryTop');
     })->name('memory.top');
@@ -37,7 +37,7 @@ Route::prefix('memories')->group(function(){
     Route::get('player',[App\Http\Controllers\ViewController::class,'CreatePlayer'])->name('memory.player');
 });
 
-Route::prefix('launch')->group(function(){
+Route::prefix('launch')->middleware('collect.http.request.stat')->group(function(){
     Route::get('/',function () {
         return Inertia::render('LaunchTop');
     })->name('adddata');
@@ -48,15 +48,11 @@ Route::prefix('launch')->group(function(){
     })->name('create.collabo');
 });
 
-Route::prefix('post')->group(function(){
-    Route::POST('collabo',[App\Http\Controllers\DataController::class, 'PostCollabo'])->name('post.collabo');
-});
-
-Route::get('chat',[App\Http\Controllers\ViewController::class,'ViewChat'])->name('chatview');
+Route::get('chat',[App\Http\Controllers\ViewController::class,'ViewChat'])->middleware('collect.http.request.stat')->name('chatview');
 
 Route::get('tools',function () {
     return Inertia::render('ToolsTop');
-})->name('toolstop');
+})->middleware('collect.http.request.stat')->name('toolstop');
 /*main routes end*/
 
 Route::prefix('create')->group(function(){
@@ -84,4 +80,8 @@ Route::middleware([
     Route::get('/dashboard', function () {
         redirect()->route('toppage');
     })->name('dashboard');
+});
+
+Route::prefix('post')->group(function(){
+    Route::POST('collabo',[App\Http\Controllers\DataController::class, 'PostCollabo'])->name('post.collabo');
 });

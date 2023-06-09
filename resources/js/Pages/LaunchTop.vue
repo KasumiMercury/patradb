@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link, router } from "@inertiajs/vue3";
-import { ref, onMounted, onUnmounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import InputLabel from "@/Components/InputLabel.vue";
 import TextInput from "@/Components/TextInput.vue";
 import YouTubeEditwindow from "@/Components/YouTubeEditwindow.vue";
@@ -12,11 +12,11 @@ defineProps({
     other: Object,
 });
 
-const stepConfig = {
-    0: "入力",
-    1: "確認",
-    2: "完了",
-};
+const stepConfig = [
+    { step: 0, text: "Input URL" },
+    { step: 1, text: "Create Data" },
+    { step: 10, text: "Complete" },
+];
 
 const mounted = ref(false);
 const videoError = ref(false);
@@ -26,8 +26,11 @@ let timer = null;
 
 const step = ref(0);
 const isCollabo = ref(true);
+const canRegister = ref(true);
 const inputUrl = ref("");
 const videoId = ref("");
+
+const videoInfos = ref(null);
 
 const youtubeWindowRef = ref(null);
 const youtubeComponent = ref();
@@ -75,63 +78,72 @@ const getClipBoard = () => {
         navigator.clipboard.readText().then(function (text) {
             inputUrl.value = text;
         });
+    } else {
+        console.log('Clipboard not supported');
     }
 };
 
-const inputUrlError = computed(() => {
+const inputUrlError = ref(false);
+// when inputUrl is changed, get videoId and check register
+watch(inputUrl, () => {
     if (inputUrl.value == "") {
-        return false;
+        inputUrlError.value = false;
+        getVideoId();
     } else {
         const reg = new RegExp(
             /(?<!=\")\b(?:https?):\/\/(?:www\.)?(?:youtube\.com|youtu\.be)\/[\w!?/+\-|:=~;.,*&@#$%()'"[\]]+/g
         );
-        return !reg.test(inputUrl.value);
+        if (reg.test(inputUrl.value)) {
+            inputUrlError.value = false;
+            getVideoId();
+        } else {
+            inputUrlError.value = true;
+        }
     }
 });
 
 const getVideoId = () => {
     const ytUrl = inputUrl.value;
-    let isShort = ytUrl.indexOf("watch");
+    const isShort = ytUrl.indexOf("watch");
+    const isLive = ytUrl.indexOf("/live/");
+    const WhereTime = ytUrl.indexOf("?t=");
+    const WhereFeauture = ytUrl.indexOf("?feature");
+    const WhereDomain = ytUrl.indexOf("youtu.be/") + 9;
+    const WhereS = ytUrl.indexOf("=") + 1;
+    const whereQuery = ytUrl.indexOf("&");
     if (isShort != -1) {
-        let WhereS = ytUrl.indexOf("=") + 1;
-        let WhereTime = ytUrl.indexOf("&t");
         if (WhereTime != -1) {
             videoId.value = ytUrl.slice(WhereS, WhereTime);
+        } else if (whereQuery != -1) {
+            videoId.value = ytUrl.slice(WhereS, whereQuery);
         } else {
-            let whereQuery = ytUrl.indexOf("&");
-            if (whereQuery != -1) {
-                videoId.value = ytUrl.slice(WhereS, whereQuery);
-            } else {
-                videoId.value = ytUrl.slice(WhereS);
-            }
+            videoId.value = ytUrl.slice(WhereS);
+        }
+    } else if (isLive != -1) {
+        if (WhereFeauture != -1) {
+            videoId.value = ytUrl.slice(WhereLive, WhereFeauture);
+        } else {
+            videoId.value = ytUrl.slice(WhereLive);
         }
     } else {
-        let isLive = ytUrl.indexOf("/live/");
-        if (isLive != -1) {
-            let WhereLive = ytUrl.indexOf("/live/") + 6;
-            let WhereFeauture = ytUrl.indexOf("?feature");
-            if (WhereFeauture != -1) {
-                videoId.value = ytUrl.slice(WhereLive, WhereFeauture);
-            } else {
-                videoId.value = ytUrl.slice(WhereLive);
-            }
+        if (WhereTime != -1) {
+            videoId.value = ytUrl.slice(WhereDomain, WhereTime);
         } else {
-            let WhereDomain = ytUrl.indexOf("youtu.be/") + 9;
-            let WhereTime = ytUrl.indexOf("?t=");
-            if (WhereTime != -1) {
-                videoId.value = ytUrl.slice(WhereDomain, WhereTime);
-            } else {
-                videoId.value = ytUrl.slice(WhereDomain);
-            }
+            videoId.value = ytUrl.slice(WhereDomain);
         }
     }
-    checkVideoId();
+    checkRegister();
 };
-
+const checkRegister = () => {
+    axios
+        .get(route("check.collabo", { videoId: videoId.value }))
+        .then((res) => {
+            canRegister.value = res.data.canRegister;
+        });
+};
 const checkVideoId = () => {
-    console.log(videoId.value);
     if (videoId.value == "") {
-        console.log("Incomplete URL");
+        // URLが入力されていない場合
         videoError.value = true;
         inputUrl.value = "";
         videoId.value = "";
@@ -139,10 +151,8 @@ const checkVideoId = () => {
         axios
             .get(route("check.video.exist", { videoId: videoId.value }))
             .then((res) => {
-                console.log(res);
                 if (res.data.isError) {
-                    // video is not exist, reset input
-                    console.log("Video is not exist");
+                    // URLが正しくない場合
                     videoError.value = true;
                     inputUrl.value = "";
                     videoId.value = "";
@@ -150,16 +160,22 @@ const checkVideoId = () => {
                 }
                 if (res.data.isCollabo) {
                     if (res.data.isExist) {
-                        // video is already exist, go to jump page
+                        // 既にコラボが存在する場合
+                        // ジャンプページに遷移する
                         step.value = 10;
                         JumpTimer();
                     } else {
-                        // video is not exist, go to create collabo data page
+                        // コラボが存在しない場合
+                        // コラボデータ作成ページに遷移する
+                        // videoInfosをコピーする
                         isCollabo.value = true;
+                        videoInfos.value = res.data.videoInfos;
+                        console.log(videoInfos.value);
                         step.value = 1;
                     }
                 } else {
-                    // video is Patra's video, go to register memory page
+                    // パトラの動画の場合
+                    // メモリ登録ページに遷移する
                     isCollabo.value = false;
                     step.value = 1;
                 }
@@ -183,8 +199,6 @@ const resetForm = () => {
     videoError.value = false;
     step.value = 0;
 };
-
-// step 1
 
 onMounted(() => {
     mounted.value = true;
@@ -227,26 +241,36 @@ export default {
                         :key="index"
                         class="step"
                         :class="
-                            index <= step ? 'step-primary' : 'step-secondary'
+                            stepItem.step <= step
+                                ? 'step-primary'
+                                : 'step-secondary'
                         "
                     >
-                        {{ stepItem }}
+                        <p
+                            :class="
+                                stepItem.step <= step
+                                    ? 'text-ptr-main'
+                                    : 'text-ptr-dark-brown'
+                            "
+                        >
+                            {{ stepItem.text }}
+                        </p>
                     </li>
                 </ul>
             </div>
 
             <div
                 v-if="step == 0"
-                class="mt-6 flex-col justify-center gap-12 px-1 md:mt-24 lg:px-8"
+                class="mt-12 flex-col justify-center gap-12 px-1 lg:px-8"
             >
                 <div
                     v-if="!$page.props.auth.user"
                     class="mx-auto max-w-5xl text-center"
                 >
-                    <p class="font-bold text-ptr-main">
+                    <p class="font-bold text-ptr-main text-sm md:text-base">
                         この機能は現在、ログインユーザーのみ使用可能です。
                     </p>
-                    <p class="my-3 text-sm">
+                    <p class="my-3 text-xs md:text-sm">
                         だまして悪いが、仕様なんでな　<Link
                             class="px-1n link-primary link"
                             :href="route('transition.login')"
@@ -254,11 +278,7 @@ export default {
                         >してもらおう
                     </p>
                 </div>
-                <div class="relative mx-auto mt-12 max-w-7xl">
-                    <div
-                        v-if="!$page.props.auth.user"
-                        class="absolute z-50 h-full w-full rounded-md bg-ptr-dark-brown/70"
-                    ></div>
+                <div class="relative mx-auto mt-6 max-w-7xl">
                     <!-- <transition>
                         <div
                             class="mx-auto my-4 flex w-fit flex-col items-center"
@@ -276,6 +296,17 @@ export default {
                         </div>
                     </transition> -->
                     <div class="px-6 py-4">
+                        <div class="mx-auto mb-2 aspect-video max-h-32">
+                            <img
+                                v-if="videoId"
+                                :src="
+                                    'https://img.youtube.com/vi/' +
+                                    videoId +
+                                    '/maxresdefault.jpg'
+                                "
+                                alt="inputed url thumbnail"
+                            />
+                        </div>
                         <InputLabel for="inputUrl" value="YouTube Video URL" />
                         <div class="flex w-full flex-col items-end">
                             <TextInput
@@ -293,20 +324,38 @@ export default {
                                 Paste
                             </button>
                         </div>
-                        <p v-if="inputUrlError" class="text-right text-red-600">
-                            YouTubeのURLを入力してください
-                        </p>
-                        <p v-if="videoError" class="text-right text-red-600">
-                            動画を検出できませんでした。URLを確認してください。
-                        </p>
+                        <div
+                            v-if="inputUrl != ''"
+                            class="text-right text-xs font-bold md:text-base"
+                        >
+                            <p v-if="inputUrlError" class="text-red-600">
+                                YouTubeのURLを入力してください
+                            </p>
+                            <p v-if="videoError" class="text-red-600">
+                                動画を検出できませんでした。URLを確認してください。
+                            </p>
+                            <p v-if="!canRegister" class="text-red-600">
+                                この動画は既にコラボ動画として登録されています。
+                            </p>
+                            <p
+                                v-if="canRegister && !inputUrlError"
+                                class="text-right text-ptr-dark-brown"
+                            >
+                                サムネイルが正しいことを確認してください。
+                            </p>
+                        </div>
                         <transition>
                             <div
-                                class="mx-auto mt-12 w-fit"
-                                v-if="inputUrl != '' && !inputUrlError"
+                                class="mx-auto mt-4 w-fit md:mt-12"
+                                v-if="
+                                    inputUrl != '' &&
+                                    !inputUrlError &&
+                                    canRegister
+                                "
                             >
                                 <button
                                     class="flex items-center rounded-xl bg-[#c20063] py-3 px-12 text-3xl text-white shadow-sm shadow-[#550341]"
-                                    @click="getVideoId()"
+                                    @click="checkVideoId()"
                                 >
                                     Next
                                     <svg
@@ -323,7 +372,17 @@ export default {
                             </div>
                         </transition>
                     </div>
+                    <div v-if="!$page.props.auth.user" class="absolute top-0 left-0 w-full h-full bg-ptr-dark-brown/70 rounded-md">
+                    </div>
                 </div>
+                    <div class="mx-auto w-fit mt-2">
+                        <Link
+                            v-if="canRegister"
+                            class="btn"
+                            :href="route('memory.videos')"
+                            >パトラチャンネルの動画検索はこちら</Link
+                        >
+                    </div>
             </div>
 
             <!-- Create Collabo Data -->

@@ -39,7 +39,7 @@ const openModal = () => {
             </h1>
             <div class="my-2 ml-auto mr-2 w-fit md:my-0">
                 <button
-                    class="btn-primary btn-sm btn text-white md:btn-md"
+                    class="btn-primary btn text-white btn-md"
                     @click="openModal"
                 >
                     通知設定

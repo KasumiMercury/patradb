@@ -114,57 +114,33 @@ class DataController extends Controller
         return redirect()->route('data.launched',['id' => $temp["videoId"]]);
     }
     public function PostCollabo(Request $request){
-        $client = new Google_Client();
-        $client->setDeveloperKey(env('GOOGLE_API_GET_INFO_KEY'));
-        $youtube = new Google_Service_YouTube($client);
-
-        $temp = $request->all();
-
-        $items = $youtube->videos->listVideos("snippet",array('id' => $temp["videoId"]));
-
-        $send["title"] = $items[0]["snippet"]["title"];
-        $send["video_id"] = $temp["videoId"];
-        $send["channel"] = $items[0]["snippet"]["channelTitle"];
-        $send["status"] = "upcoming";
-        $send["published_at"] = date('Y-m-d H:i:s', strtotime($items[0]["snippet"]["publishedAt"]));
-        $send["creater_hn"] = $temp["handleName"];
-        $send["creater_show"] = $temp["showName"];
-        $send["created_at"] = date('Y-m-d H:i:s');
-        $send["updated_at"] = date('Y-m-d H:i:s');
-        $send["description"] = $items[0]["snippet"]["description"];
-        $send["start"] = $temp["start"];
-        $send["end"] = $temp["end"];
-        $send["free_title"] = $items[0]["snippet"]["title"];
-        DB::table('videos')->insert($send);
-
-        $tempChannnel = $items[0]["snippet"]["channelId"];
-        $channelIsNew = DB::table('collaboed')->where('channel_id',$tempChannnel)->doesntExist();
-        if($channelIsNew){
-            $channel["channel_id"] = $tempChannnel;
-            $channel["channel_display"] = $items[0]["snippet"]["channelTitle"];
-            $channel["created_at"] = date('Y-m-d H:i:s');
-            $channel["updated_at"] = date('Y-m-d H:i:s');
-            DB::table('collaboed')->insert($channel);
-        }
-
-        Artisan::call('command:getstatus');
-        Artisan::call('command:getschedule');
-
-        $request->session()->flash('message', '登録が完了しました。ご協力ありがとうございます！');
-        return redirect('/');
     }
     public function CheckCollabo(Request $request){
         $temp = $request->all();
-        $isExist = DB::table('videos')->where('video_id',$temp["videoId"])->exists();
-        return response()->json(['isExist' => $isExist]);
-    }
-    public function CheckVideoExist(Request $request){
-        $patrChannelArray = config('services.channel');
-        $patrChannelName = array_keys($patrChannelArray);
-        $temp = $request->all();
+        $patraChannelArray = config('services.channel');
+        $patraChannelName = array_keys($patraChannelArray);
         $data = DB::table('videos')->where('video_id',$temp["videoId"])->first();
         if($data){
-            if(in_array($data->channel,$patrChannelName)){
+            // if channel is in patra channel, return canRegister true
+            if(in_array($data->channel,$patraChannelName)){
+                return response()->json(['canRegister' => true]);
+            }else{
+                return response()->json(['canRegister' => false]);
+            }
+        }else{
+            return response()->json(['canRegister' => true]);
+        }
+    }
+    public function CheckVideoExist(Request $request){
+        $patraChannelArray = config('services.channel');
+        $patraChannelName = array_keys($patraChannelArray);
+        $temp = $request->all();
+        $data = DB::table('videos')->where('video_id',$temp["videoId"])->first();
+        // $data = $this->youtubeRepository->getVideoInfo($request->input('videoId'));
+        //check if video is exist
+        if($data){
+            //check if channel is collabo channel or not
+            if(in_array($data->channel,$patraChannelName)){
                 return response()->json(['isExist' => true,'isCollabo'=>false,'isError'=>false]);
             }else{
                 return response()->json(['isExist' => true,'isCollabo'=>true,'isError'=>false]);
@@ -175,14 +151,52 @@ class DataController extends Controller
             $youtube = new Google_Service_YouTube($client);
 
             // if video is not exist return isCoolabo true, isExist false and isErorr true
-            $item = $youtube->videos->listVideos("snippet",array('id' => $temp["videoId"]));
+            $item = $youtube->videos->listVideos("snippet,liveStreamingDetails",array('id' => $temp["videoId"]));
             if(count($item) == 0){
                 return response()->json(['isExist' => false,'isCollabo'=>true,'isError'=>true]);
             }else{
+                // Check if the video belongs to a collabo channel
                 $channelDisplayName = $item[0]["snippet"]["channelTitle"];
                 $channelId = $item[0]["snippet"]["channelId"];
+                $title = $item[0]["snippet"]["title"];
+                $description = $item[0]["snippet"]["description"];
+                $publishedAt = $item[0]["snippet"]["publishedAt"];
+                $publishedAt = date('Y-m-d H:i:s', strtotime($publishedAt));
+                $status = "";
+                if($item[0]["liveStreamingDetails"] != null){
+                    $scheduledAt = $item[0]["liveStreamingDetails"]["scheduledStartTime"];
+                    $scheduledAt = date('Y-m-d H:i:s', strtotime($scheduledAt));
+                    $statusResponse = $item[0]["snippet"]["liveBroadcastContent"];
+                    if($statusResponse == "none"){
+                        $status = "archived";
+                    }elseif($statusResponse == "upcoming"){
+                        $status = "upcoming";
+                    }elseif($statusResponse == "live"){
+                        $status = "live";
+                    }else{
+                        $status = "error";
+                    }
+                }else{
+                    $scheduledAt = null;
+                    $status = "archived";
+                }
 
-                return response()->json(['isExist' => false,'isCollabo'=>true,'isError'=>false,'channelDisplayName'=>$channelDisplayName,'channelId'=>$channelId]);
+                // video infos put together in json
+                $videoInfos = [
+                    "title" => $title,
+                    "video_id" => $temp["videoId"],
+                    "channel" => $channelDisplayName,
+                    "channel_id" => $channelId,
+                    "status" => $status,
+                    "published_at" => $publishedAt,
+                    "scheduled_at" => $scheduledAt,
+                    "description" => $description,
+                    "created_at" => date('Y-m-d H:i:s'),
+                    "updated_at" => date('Y-m-d H:i:s'),
+                ];
+
+                // return response with video infos
+                return response()->json(['isExist' => false,'isCollabo'=>true,'isError'=>false,'videoInfos'=>$videoInfos]);
             }
         }
     }

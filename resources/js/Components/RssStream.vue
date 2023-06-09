@@ -97,7 +97,7 @@ section ::v-deep(button) {
             </h1>
             <div class="my-2 ml-auto mr-2 w-fit md:my-0">
                 <button
-                    class="btn-primary btn-sm btn text-white md:btn-md"
+                    class="btn-primary btn-md btn text-white"
                     @click="openModal"
                 >
                     通知設定
